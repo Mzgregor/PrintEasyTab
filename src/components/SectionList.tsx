@@ -66,9 +66,14 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
                     <button
                         key={type}
                         onClick={() => addSection(songId, type)}
-                        className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-lg text-slate-400 hover:text-slate-100 transition-all text-xs font-semibold uppercase tracking-wide group"
+                        className="group relative overflow-hidden bg-[#2c2c2e] hover:bg-[#3a3a3c] border border-[#38383a] rounded-lg p-3 transition-all active:scale-[0.98]"
                     >
-                        <Plus size={14} className="group-hover:text-indigo-400 transition-colors" /> {type}
+                        <div className="flex items-center justify-center gap-2 relative z-10">
+                            <Plus size={14} className="text-[#0a84ff]" />
+                            <span className="text-[12px] font-semibold uppercase tracking-wider text-gray-300 group-hover:text-white transition-colors">
+                                {type}
+                            </span>
+                        </div>
                     </button>
                 ))}
             </div>

@@ -10,17 +10,19 @@ interface Props {
 
 export const SongBlock: React.FC<Props> = ({ song, index }) => {
     return (
-        <div className="bg-slate-900/50 rounded-xl overflow-hidden border border-slate-700/50 shadow-sm relative">
-            <div className="absolute top-0 left-0 w-1 h-full bg-slate-700"></div>
-
-            {/* Song Label (Visual distinction as requested: Different background/header) */}
-            <div className="bg-slate-800 border-b border-slate-700 px-4 py-2 flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">
+        <div className="glass-card rounded-[20px] overflow-hidden relative group transition-transform duration-500 ease-out hover:scale-[1.01]">
+            {/* iOS Grouped Header Style */}
+            <div className="px-5 py-3 border-b border-[#38383a] bg-[#2c2c2e]/50 backdrop-blur-md flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#8e8e93]">
                     Song {index + 1}
                 </span>
+                <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-[#3a3a3c]" />
+                    <div className="w-2 h-2 rounded-full bg-[#3a3a3c]" />
+                </div>
             </div>
 
-            <div className="p-4 space-y-6">
+            <div className="p-5 space-y-8">
                 <SongMetadata songId={song.id} />
                 <SectionList songId={song.id} />
             </div>

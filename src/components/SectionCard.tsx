@@ -31,23 +31,23 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden group shadow-sm hover:shadow-md hover:border-slate-600 transition-all"
+            className="rounded-xl overflow-hidden bg-[#1c1c1e] border border-[#2c2c2e] shadow-sm group transition-colors hover:border-[#3a3a3c]"
         >
-            <div className="flex items-center p-3 bg-slate-800/50 border-b border-slate-700/50 gap-3">
+            <div className="flex items-center p-3 bg-[#2c2c2e]/30 border-b border-[#2c2c2e] gap-3">
                 {/* Drag Handle */}
                 <button
                     {...attributes}
                     {...listeners}
-                    className="text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-700/50 transition-colors"
+                    className="text-[#636366] hover:text-[#aeaeb2] cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors"
                 >
-                    <GripVertical size={18} />
+                    <GripVertical size={16} />
                 </button>
 
                 {/* Section Label */}
                 <input
                     value={section.label}
                     onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
-                    className="bg-transparent text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 rounded px-2 py-0.5 w-full max-w-[200px]"
+                    className="bg-transparent text-white font-medium focus:outline-none focus:ring-1 focus:ring-[#0a84ff] rounded px-2 py-0.5 w-full max-w-[200px] placeholder-[#636366]"
                 />
 
                 <div className="flex-1" />
@@ -56,14 +56,14 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => duplicateSection(songId, section.id)}
-                        className="p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-slate-700 rounded transition-colors"
+                        className="p-1.5 text-[#636366] hover:text-[#0a84ff] hover:bg-[#3a3a3c] rounded-md transition-colors"
                         title="Duplicate"
                     >
                         <Copy size={16} />
                     </button>
                     <button
                         onClick={() => removeSection(songId, section.id)}
-                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                        className="p-1.5 text-[#636366] hover:text-red-500 hover:bg-[#3a3a3c] rounded-md transition-colors"
                         title="Delete"
                     >
                         <Trash2 size={16} />
@@ -71,8 +71,8 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 </div>
             </div>
 
-            <div className="p-4 bg-slate-900/30">
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2">
+            <div className="p-4 bg-[#1c1c1e]">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
                     {section.measures.map((measure, index) => (
                         <MeasureCard
                             key={measure.id}
@@ -85,7 +85,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
 
                     <button
                         onClick={() => addMeasure(songId, section.id)}
-                        className="aspect-[4/3] border-2 border-dashed border-slate-800 hover:border-slate-600 rounded-md flex items-center justify-center text-slate-600 hover:text-slate-400 transition-colors"
+                        className="aspect-[4/3] border border-dashed border-[#3a3a3c] hover:border-[#0a84ff]/50 rounded-lg flex items-center justify-center text-[#636366] hover:text-[#0a84ff] transition-colors bg-[#2c2c2e]/20 hover:bg-[#2c2c2e]/50"
                         title="Add Measure"
                     >
                         <Plus size={20} />

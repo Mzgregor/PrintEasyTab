@@ -1,21 +1,75 @@
 @import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
 
 @theme {
-  --color-slate-950: #020617;
-  --color-slate-900: #0f172a;
-  --color-slate-800: #1e293b;
-  --color-slate-700: #334155;
-  --color-slate-600: #475569;
-  --color-slate-500: #64748b;
-  --color-slate-400: #94a3b8;
-  --color-slate-300: #cbd5e1;
-  --color-slate-200: #e2e8f0;
-  --color-slate-100: #f1f5f9;
-  --color-slate-50: #f8fafc;
+  /* iOS / macOS Inspired Dark Palette */
+  --color-ios-bg: #000000;
+  --color-ios-bg-secondary: #1c1c1e;
+  /* Grouped Table View Background */
+  --color-ios-bg-tertiary: #2c2c2e;
+  --color-ios-blue: #0a84ff;
+  --color-ios-gray: #8e8e93;
+  --color-ios-gray2: #636366;
+  --color-ios-gray3: #48484a;
+  --color-ios-gray4: #3a3a3c;
+  --color-ios-gray5: #2c2c2e;
+  --color-ios-gray6: #1c1c1e;
+  --color-ios-separator: #38383a;
+
+  /* Keep legacy slate for compatibility but map them if needed or use directly */
+  --color-slate-950: #000000;
+  --color-slate-900: #1c1c1e;
+  --color-slate-800: #2c2c2e;
+  --color-slate-700: #3a3a3c;
+  --color-slate-600: #48484a;
 }
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    @apply bg-[var(--color-ios-bg)] text-slate-100 antialiased font-sans selection:bg-[var(--color-ios-blue)] selection:text-white;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom Scrollbar for Mac feel */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-zinc-700/50 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-600/80;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-[#1c1c1e] border border-[#2c2c2e] shadow-xl;
+  }
+
+  .ios-input {
+    @apply bg-[#2c2c2e] border-none rounded-lg px-3 py-2 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#0a84ff] transition-all outline-none;
+  }
+
+  .ios-btn {
+    @apply bg-[#0a84ff] hover:bg-[#0071e3] text-white font-medium rounded-full px-4 py-2 transition-all active:scale-95 shadow-lg shadow-blue-500/20;
+  }
+
+  .ios-btn-secondary {
+    @apply bg-[#2c2c2e] hover:bg-[#3a3a3c] text-blue-400 font-medium rounded-full px-4 py-2 transition-all active:scale-95;
   }
 }
