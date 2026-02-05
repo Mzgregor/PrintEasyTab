@@ -30,6 +30,24 @@ export const SongMetadata: React.FC = () => {
                         placeholder="e.g. Oasis"
                     />
                 </div>
+                <div className="space-y-2">
+                    <label htmlFor="capo" className="text-sm font-medium text-slate-400">Capodastre (Case)</label>
+                    <input
+                        id="capo"
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={song.capo}
+                        onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            // clamp between 0 and 10
+                            const clamped = Math.min(Math.max(val, 0), 10);
+                            useSongStore.getState().setCapo(clamped);
+                        }}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-100 placeholder-slate-500"
+                        placeholder="0"
+                    />
+                </div>
             </div>
         </div>
     );

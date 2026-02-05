@@ -7,6 +7,7 @@ interface SongState {
     song: Song;
     setTitle: (title: string) => void;
     setArtist: (artist: string) => void;
+    setCapo: (capo: number) => void;
 
     addSection: (type?: SectionType) => void;
     removeSection: (sectionId: string) => void;
@@ -36,11 +37,13 @@ export const useSongStore = create<SongState>((set) => ({
     song: {
         title: '',
         artist: '',
+        capo: 0,
         sections: []
     },
 
     setTitle: (title) => set((state) => ({ song: { ...state.song, title } })),
     setArtist: (artist) => set((state) => ({ song: { ...state.song, artist } })),
+    setCapo: (capo) => set((state) => ({ song: { ...state.song, capo } })),
 
     addSection: (type = 'Verse') => set((state) => {
         // Count existing sections of this type to auto-number

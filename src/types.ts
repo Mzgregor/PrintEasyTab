@@ -22,5 +22,6 @@ export type Section = {
 export type Song = {
     title: string;
     artist: string;
+    capo: number; // 0-10, 0 = no capo
     sections: Section[];
 };

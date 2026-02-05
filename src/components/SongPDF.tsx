@@ -99,6 +99,23 @@ export const SongPDF: React.FC<Props> = ({ song }) => {
                 <View style={styles.header}>
                     <Text style={styles.title}>{song.title || 'Untitled Song'}</Text>
                     <Text style={styles.artist}>{song.artist || 'Unknown Artist'}</Text>
+                    {song.capo > 0 && (
+                        <View style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15,
+                            backgroundColor: '#000000',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <Text style={{ color: '#FFFFFF', fontSize: 14, fontFamily: 'Helvetica-Bold' }}>
+                                {song.capo}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {song.sections.map((section) => (
