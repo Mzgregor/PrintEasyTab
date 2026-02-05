@@ -1,6 +1,6 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
-import type { Song, Section, Measure, ChordBlock } from '../types';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import type { Song, Measure } from '../types';
 
 // Register a nice font if possible, otherwise use standard fonts
 // Font.register({ family: 'Inter', src: '...' });
@@ -72,10 +72,6 @@ const styles = StyleSheet.create({
     }
 });
 
-interface Props {
-    song: Song;
-}
-
 const MeasureView = ({ measure }: { measure: Measure }) => {
     return (
         <View style={styles.measure}>
@@ -92,40 +88,56 @@ const MeasureView = ({ measure }: { measure: Measure }) => {
     );
 };
 
-export const SongPDF: React.FC<Props> = ({ song }) => {
+export const SongPDF: React.FC<{ songs: Song[] }> = ({ songs }) => {
     return (
-        <Document title={`${song.title} - ${song.artist}`}>
+        <Document title="Chord Sheet">
             <Page size="A4" style={styles.page}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>{song.title || 'Untitled Song'}</Text>
-                    <Text style={styles.artist}>{song.artist || 'Unknown Artist'}</Text>
-                    {song.capo > 0 && (
-                        <View style={{
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15,
-                            backgroundColor: '#000000',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <Text style={{ color: '#FFFFFF', fontSize: 14, fontFamily: 'Helvetica-Bold' }}>
-                                {song.capo}
-                            </Text>
+                {songs.map((song, index) => (
+                    <View key={song.id} style={{ marginBottom: 20 }}>
+                        {/* Song Header */}
+                        <View style={styles.header}>
+                            <Text style={styles.title}>{song.title || `Song ${index + 1}`}</Text>
+                            <Text style={styles.artist}>{song.artist || 'Unknown Artist'}</Text>
+                            {song.capo > 0 && (
+                                <View style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 12,
+                                    backgroundColor: '#000000',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <Text style={{ color: '#FFFFFF', fontSize: 12, fontFamily: 'Helvetica-Bold' }}>
+                                        {song.capo}
+                                    </Text>
+                                </View>
+                            )}
                         </View>
-                    )}
-                </View>
 
-                {song.sections.map((section) => (
-                    <View key={section.id} style={styles.section} wrap={false}>
-                        <Text style={styles.sectionLabel}>{section.label}</Text>
-                        <View style={styles.measureGrid}>
-                            {section.measures.map((measure) => (
-                                <MeasureView key={measure.id} measure={measure} />
-                            ))}
-                        </View>
+                        {/* Song Sections */}
+                        {song.sections.map((section) => (
+                            <View key={section.id} style={styles.section} wrap={false}>
+                                <Text style={styles.sectionLabel}>{section.label}</Text>
+                                <View style={styles.measureGrid}>
+                                    {section.measures.map((measure) => (
+                                        <MeasureView key={measure.id} measure={measure} />
+                                    ))}
+                                </View>
+                            </View>
+                        ))}
+
+                        {/* Divider if not last song */}
+                        {index < songs.length - 1 && (
+                            <View style={{
+                                marginVertical: 15,
+                                borderBottomWidth: 2,
+                                borderBottomColor: '#EEEEEE',
+                                borderStyle: 'dashed'
+                            }} />
+                        )}
                     </View>
                 ))}
 

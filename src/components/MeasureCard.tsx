@@ -4,12 +4,13 @@ import { useSongStore } from '../store/useSongStore';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
+    songId: string;
     sectionId: string;
     measure: Measure;
     index: number;
 }
 
-export const MeasureCard: React.FC<Props> = ({ sectionId, measure, index }) => {
+export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index }) => {
     const { updateMeasure, removeMeasure } = useSongStore();
 
     // Local state for formatted text representation (e.g. "C Am7")
@@ -23,23 +24,12 @@ export const MeasureCard: React.FC<Props> = ({ sectionId, measure, index }) => {
         const chordTexts = text.trim().split(/\s+/).filter(Boolean);
 
         if (chordTexts.length === 0) {
-            updateMeasure(sectionId, measure.id, []);
+            updateMeasure(songId, sectionId, measure.id, []);
             return;
         }
 
         const count = chordTexts.length;
         // Simple logic: equal division of 4 beats
-        // 1 chord -> 4 beats
-        // 2 chords -> 2 beats each
-        // 3 chords -> 1.33?? For now let's do 4 beats total.
-        // Better logic: 3 chords in 4/4 usually means 2+1+1 or 1+1+2 or 1.33.
-        // MVP: Equal division, even if fractional, or just store duration.
-        // Let's stick to:
-        // 1: [4]
-        // 2: [2, 2]
-        // 3: [1.33...] (Visuals will just handle spacing)
-        // 4: [1, 1, 1, 1]
-
         const beatsPerChord = 4 / count;
 
         const newChords: ChordBlock[] = chordTexts.map((t, i) => ({
@@ -48,7 +38,7 @@ export const MeasureCard: React.FC<Props> = ({ sectionId, measure, index }) => {
             duration: beatsPerChord
         }));
 
-        updateMeasure(sectionId, measure.id, newChords);
+        updateMeasure(songId, sectionId, measure.id, newChords);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -56,8 +46,7 @@ export const MeasureCard: React.FC<Props> = ({ sectionId, measure, index }) => {
             e.currentTarget.blur();
         }
         if (e.key === 'Backspace' && text === '' && measure.chords.length === 0) {
-            // Optional: delete measure if empty and backspace pressed?
-            // removeMeasure(sectionId, measure.id);
+            removeMeasure(songId, sectionId, measure.id);
         }
     };
 
@@ -68,7 +57,7 @@ export const MeasureCard: React.FC<Props> = ({ sectionId, measure, index }) => {
             </span>
 
             <button
-                onClick={() => removeMeasure(sectionId, measure.id)}
+                onClick={() => removeMeasure(songId, sectionId, measure.id)}
                 className="absolute top-1 right-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Remove Measure"
             >

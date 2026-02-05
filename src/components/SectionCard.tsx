@@ -7,10 +7,11 @@ import { MeasureCard } from './MeasureCard';
 import { Plus } from 'lucide-react';
 
 interface Props {
+    songId: string;
     section: Section;
 }
 
-export const SectionCard: React.FC<Props> = ({ section }) => {
+export const SectionCard: React.FC<Props> = ({ songId, section }) => {
     const {
         attributes,
         listeners,
@@ -24,7 +25,7 @@ export const SectionCard: React.FC<Props> = ({ section }) => {
         transition,
     };
 
-    const { removeSection, duplicateSection, updateSection } = useSongStore();
+    const { removeSection, duplicateSection, updateSection, addMeasure } = useSongStore();
 
     return (
         <div
@@ -45,7 +46,7 @@ export const SectionCard: React.FC<Props> = ({ section }) => {
                 {/* Section Label */}
                 <input
                     value={section.label}
-                    onChange={(e) => updateSection(section.id, { label: e.target.value })}
+                    onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
                     className="bg-transparent text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 rounded px-2 py-0.5 w-full max-w-[200px]"
                 />
 
@@ -54,14 +55,14 @@ export const SectionCard: React.FC<Props> = ({ section }) => {
                 {/* Actions */}
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
-                        onClick={() => duplicateSection(section.id)}
+                        onClick={() => duplicateSection(songId, section.id)}
                         className="p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-slate-700 rounded transition-colors"
                         title="Duplicate"
                     >
                         <Copy size={16} />
                     </button>
                     <button
-                        onClick={() => removeSection(section.id)}
+                        onClick={() => removeSection(songId, section.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
                         title="Delete"
                     >
@@ -75,6 +76,7 @@ export const SectionCard: React.FC<Props> = ({ section }) => {
                     {section.measures.map((measure, index) => (
                         <MeasureCard
                             key={measure.id}
+                            songId={songId}
                             sectionId={section.id}
                             measure={measure}
                             index={index}
@@ -82,7 +84,7 @@ export const SectionCard: React.FC<Props> = ({ section }) => {
                     ))}
 
                     <button
-                        onClick={() => useSongStore.getState().addMeasure(section.id)}
+                        onClick={() => addMeasure(songId, section.id)}
                         className="aspect-[4/3] border-2 border-dashed border-slate-800 hover:border-slate-600 rounded-md flex items-center justify-center text-slate-600 hover:text-slate-400 transition-colors"
                         title="Add Measure"
                     >

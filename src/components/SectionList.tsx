@@ -6,8 +6,14 @@ import { SectionCard } from './SectionCard';
 import { Plus } from 'lucide-react';
 import type { SectionType } from '../types';
 
-export const SectionList: React.FC = () => {
-    const { song, addSection, moveSection } = useSongStore();
+interface Props {
+    songId: string;
+}
+
+export const SectionList: React.FC<Props> = ({ songId }) => {
+    // Select the specific song we are editing
+    const song = useSongStore(state => state.songs.find(s => s.id === songId));
+    const { addSection, moveSection } = useSongStore();
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -16,10 +22,12 @@ export const SectionList: React.FC = () => {
         })
     );
 
+    if (!song) return null;
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
-            moveSection(active.id as string, over.id as string);
+            moveSection(songId, active.id as string, over.id as string);
         }
     };
 
@@ -30,6 +38,7 @@ export const SectionList: React.FC = () => {
             </div>
 
             <DndContext
+                id={`dnd-context-${songId}`} // Ensure unique context per song
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
@@ -45,7 +54,7 @@ export const SectionList: React.FC = () => {
                             </div>
                         )}
                         {song.sections.map((section) => (
-                            <SectionCard key={section.id} section={section} />
+                            <SectionCard key={section.id} songId={songId} section={section} />
                         ))}
                     </div>
                 </SortableContext>
@@ -56,7 +65,7 @@ export const SectionList: React.FC = () => {
                 {(['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro', 'Solo'] as SectionType[]).map((type) => (
                     <button
                         key={type}
-                        onClick={() => addSection(type)}
+                        onClick={() => addSection(songId, type)}
                         className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-lg text-slate-400 hover:text-slate-100 transition-all text-xs font-semibold uppercase tracking-wide group"
                     >
                         <Plus size={14} className="group-hover:text-indigo-400 transition-colors" /> {type}

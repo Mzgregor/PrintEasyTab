@@ -20,6 +20,7 @@ export type Section = {
 };
 
 export type Song = {
+    id: string; // Unique ID for the song
     title: string;
     artist: string;
     capo: number; // 0-10, 0 = no capo

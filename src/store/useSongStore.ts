@@ -4,20 +4,23 @@ import type { Song, Section, SectionType, Measure, ChordBlock } from '../types';
 import { arrayMove } from '@dnd-kit/sortable';
 
 interface SongState {
-    song: Song;
-    setTitle: (title: string) => void;
-    setArtist: (artist: string) => void;
-    setCapo: (capo: number) => void;
+    songs: Song[];
+    addSong: () => void;
+    removeSong: (songId: string) => void;
 
-    addSection: (type?: SectionType) => void;
-    removeSection: (sectionId: string) => void;
-    moveSection: (activeId: string, overId: string) => void;
-    updateSection: (sectionId: string, updates: Partial<Section>) => void;
-    duplicateSection: (sectionId: string) => void;
+    setTitle: (songId: string, title: string) => void;
+    setArtist: (songId: string, artist: string) => void;
+    setCapo: (songId: string, capo: number) => void;
 
-    addMeasure: (sectionId: string) => void;
-    removeMeasure: (sectionId: string, measureId: string) => void;
-    updateMeasure: (sectionId: string, measureId: string, chords: ChordBlock[]) => void;
+    addSection: (songId: string, type?: SectionType) => void;
+    removeSection: (songId: string, sectionId: string) => void;
+    moveSection: (songId: string, activeId: string, overId: string) => void;
+    updateSection: (songId: string, sectionId: string, updates: Partial<Section>) => void;
+    duplicateSection: (songId: string, sectionId: string) => void;
+
+    addMeasure: (songId: string, sectionId: string) => void;
+    removeMeasure: (songId: string, sectionId: string, measureId: string) => void;
+    updateMeasure: (songId: string, sectionId: string, measureId: string, chords: ChordBlock[]) => void;
 }
 
 const createMeasure = (): Measure => ({
@@ -33,116 +36,158 @@ const createSection = (type: SectionType = 'Verse', index: number): Section => (
     measures: [createMeasure(), createMeasure(), createMeasure(), createMeasure()] // Start with 4
 });
 
+const createSong = (index: number): Song => ({
+    id: uuidv4(),
+    title: '',
+    artist: '',
+    capo: 0,
+    sections: []
+});
+
 export const useSongStore = create<SongState>((set) => ({
-    song: {
-        title: '',
-        artist: '',
-        capo: 0,
-        sections: []
-    },
+    songs: [createSong(0)], // Initial single song
 
-    setTitle: (title) => set((state) => ({ song: { ...state.song, title } })),
-    setArtist: (artist) => set((state) => ({ song: { ...state.song, artist } })),
-    setCapo: (capo) => set((state) => ({ song: { ...state.song, capo } })),
-
-    addSection: (type = 'Verse') => set((state) => {
-        // Count existing sections of this type to auto-number
-        const existingCount = state.song.sections.filter(s => s.type === type).length;
+    addSong: () => set((state) => {
+        if (state.songs.length >= 4) return {};
         return {
-            song: {
-                ...state.song,
-                sections: [...state.song.sections, createSection(type, existingCount)]
-            }
+            songs: [...state.songs, createSong(state.songs.length)]
         };
     }),
 
-    removeSection: (id) => set((state) => ({
-        song: {
-            ...state.song,
-            sections: state.song.sections.filter((s) => s.id !== id)
-        }
-    })),
-
-    moveSection: (activeId, overId) => set((state) => {
-        const oldIndex = state.song.sections.findIndex((s) => s.id === activeId);
-        const newIndex = state.song.sections.findIndex((s) => s.id === overId);
+    removeSong: (songId) => set((state) => {
+        if (state.songs.length <= 1) return {}; // Prevent removing the last song
         return {
-            song: {
-                ...state.song,
-                sections: arrayMove(state.song.sections, oldIndex, newIndex)
-            }
+            songs: state.songs.filter(s => s.id !== songId)
         };
     }),
 
-    updateSection: (id, updates) => set((state) => ({
-        song: {
-            ...state.song,
-            sections: state.song.sections.map((s) =>
-                s.id === id ? { ...s, ...updates } : s
-            )
-        }
+    setTitle: (songId, title) => set((state) => ({
+        songs: state.songs.map(s => s.id === songId ? { ...s, title } : s)
     })),
 
-    duplicateSection: (id) => set((state) => {
-        const sectionIndex = state.song.sections.findIndex(s => s.id === id);
-        if (sectionIndex === -1) return {};
+    setArtist: (songId, artist) => set((state) => ({
+        songs: state.songs.map(s => s.id === songId ? { ...s, artist } : s)
+    })),
 
-        const sectionToDup = state.song.sections[sectionIndex];
-        const newSection = {
-            ...sectionToDup,
-            id: uuidv4(),
-            label: `${sectionToDup.label} (Copy)`,
-            measures: sectionToDup.measures.map(m => ({
-                ...m,
+    setCapo: (songId, capo) => set((state) => ({
+        songs: state.songs.map(s => s.id === songId ? { ...s, capo } : s)
+    })),
+
+    addSection: (songId, type = 'Verse') => set((state) => {
+        return {
+            songs: state.songs.map(s => {
+                if (s.id !== songId) return s;
+                const existingCount = s.sections.filter(sec => sec.type === type).length;
+                return {
+                    ...s,
+                    sections: [...s.sections, createSection(type, existingCount)]
+                };
+            })
+        };
+    }),
+
+    removeSection: (songId, sectionId) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            return {
+                ...s,
+                sections: s.sections.filter((sec) => sec.id !== sectionId)
+            };
+        })
+    })),
+
+    moveSection: (songId, activeId, overId) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            const oldIndex = s.sections.findIndex((sec) => sec.id === activeId);
+            const newIndex = s.sections.findIndex((sec) => sec.id === overId);
+            return {
+                ...s,
+                sections: arrayMove(s.sections, oldIndex, newIndex)
+            };
+        })
+    })),
+
+    updateSection: (songId, sectionId, updates) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            return {
+                ...s,
+                sections: s.sections.map((sec) =>
+                    sec.id === sectionId ? { ...sec, ...updates } : sec
+                )
+            };
+        })
+    })),
+
+    duplicateSection: (songId, sectionId) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            const sectionIndex = s.sections.findIndex(sec => sec.id === sectionId);
+            if (sectionIndex === -1) return s;
+
+            const sectionToDup = s.sections[sectionIndex];
+            const newSection = {
+                ...sectionToDup,
                 id: uuidv4(),
-                chords: m.chords.map(c => ({ ...c, id: uuidv4() }))
-            }))
-        };
+                label: `${sectionToDup.label} (Copy)`,
+                measures: sectionToDup.measures.map(m => ({
+                    ...m,
+                    id: uuidv4(),
+                    chords: m.chords.map(c => ({ ...c, id: uuidv4() }))
+                }))
+            };
 
-        const newSections = [...state.song.sections];
-        newSections.splice(sectionIndex + 1, 0, newSection);
-
-        return {
-            song: { ...state.song, sections: newSections }
-        };
-    }),
-
-    addMeasure: (sectionId) => set((state) => ({
-        song: {
-            ...state.song,
-            sections: state.song.sections.map((s) =>
-                s.id === sectionId
-                    ? { ...s, measures: [...s.measures, createMeasure()] }
-                    : s
-            )
-        }
+            const newSections = [...s.sections];
+            newSections.splice(sectionIndex + 1, 0, newSection);
+            return { ...s, sections: newSections };
+        })
     })),
 
-    removeMeasure: (sectionId, measureId) => set((state) => ({
-        song: {
-            ...state.song,
-            sections: state.song.sections.map((s) =>
-                s.id === sectionId
-                    ? { ...s, measures: s.measures.filter(m => m.id !== measureId) }
-                    : s
-            )
-        }
+    addMeasure: (songId, sectionId) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            return {
+                ...s,
+                sections: s.sections.map((sec) =>
+                    sec.id === sectionId
+                        ? { ...sec, measures: [...sec.measures, createMeasure()] }
+                        : sec
+                )
+            };
+        })
     })),
 
-    updateMeasure: (sectionId, measureId, chords) => set((state) => ({
-        song: {
-            ...state.song,
-            sections: state.song.sections.map((s) =>
-                s.id === sectionId
-                    ? {
-                        ...s,
-                        measures: s.measures.map(m =>
-                            m.id === measureId ? { ...m, chords } : m
-                        )
-                    }
-                    : s
-            )
-        }
+    removeMeasure: (songId, sectionId, measureId) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            return {
+                ...s,
+                sections: s.sections.map((sec) =>
+                    sec.id === sectionId
+                        ? { ...sec, measures: sec.measures.filter(m => m.id !== measureId) }
+                        : sec
+                )
+            };
+        })
+    })),
+
+    updateMeasure: (songId, sectionId, measureId, chords) => set((state) => ({
+        songs: state.songs.map(s => {
+            if (s.id !== songId) return s;
+            return {
+                ...s,
+                sections: s.sections.map((sec) =>
+                    sec.id === sectionId
+                        ? {
+                            ...sec,
+                            measures: sec.measures.map(m =>
+                                m.id === measureId ? { ...m, chords } : m
+                            )
+                        }
+                        : sec
+                )
+            };
+        })
     }))
-
 }));
