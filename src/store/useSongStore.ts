@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { Song, Section, SectionType, Measure, ChordBlock } from '../types';
-import { arrayMove } from '@dnd-kit/sortable';
 
 interface SongState {
     songs: Song[];
@@ -21,6 +20,11 @@ interface SongState {
     addMeasure: (songId: string, sectionId: string) => void;
     removeMeasure: (songId: string, sectionId: string, measureId: string) => void;
     updateMeasure: (songId: string, sectionId: string, measureId: string, chords: ChordBlock[]) => void;
+
+    toggleMode: (songId: string) => void;
+
+    viewMode: 'editor' | 'metronome';
+    setViewMode: (mode: 'editor' | 'metronome') => void;
 }
 
 const createMeasure = (): Measure => ({
@@ -33,11 +37,16 @@ const createSection = (type: SectionType = 'Verse', index: number): Section => (
     id: uuidv4(),
     type,
     label: `${type} ${index + 1}`,
-    measures: [createMeasure(), createMeasure(), createMeasure(), createMeasure()] // Start with 4
+    measures: [createMeasure(), createMeasure(), createMeasure(), createMeasure()], // Start with 4
+    lyrics: '',
+    lyricsSize: 14,
+    lyricsColor: '#000000',
+    lyricsAlign: 'left'
 });
 
 const createSong = (index: number): Song => ({
     id: uuidv4(),
+    mode: 'chords',
     title: '',
     artist: '',
     capo: 0,
@@ -101,9 +110,16 @@ export const useSongStore = create<SongState>((set) => ({
             if (s.id !== songId) return s;
             const oldIndex = s.sections.findIndex((sec) => sec.id === activeId);
             const newIndex = s.sections.findIndex((sec) => sec.id === overId);
+
+            if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return s;
+
+            const newSections = [...s.sections];
+            const [movedSection] = newSections.splice(oldIndex, 1);
+            newSections.splice(newIndex, 0, movedSection);
+
             return {
                 ...s,
-                sections: arrayMove(s.sections, oldIndex, newIndex)
+                sections: newSections
             };
         })
     })),
@@ -189,5 +205,16 @@ export const useSongStore = create<SongState>((set) => ({
                 )
             };
         })
-    }))
+    })),
+
+    toggleMode: (songId) => set((state) => ({
+        songs: state.songs.map(s =>
+            s.id === songId
+                ? { ...s, mode: s.mode === 'chords' ? 'lyrics' : 'chords' }
+                : s
+        )
+    })),
+
+    viewMode: 'editor',
+    setViewMode: (viewMode) => set({ viewMode })
 }));

@@ -121,11 +121,25 @@ export const SongPDF: React.FC<{ songs: Song[] }> = ({ songs }) => {
                         {song.sections.map((section) => (
                             <View key={section.id} style={styles.section} wrap={false}>
                                 <Text style={styles.sectionLabel}>{section.label}</Text>
-                                <View style={styles.measureGrid}>
-                                    {section.measures.map((measure) => (
-                                        <MeasureView key={measure.id} measure={measure} />
-                                    ))}
-                                </View>
+                                {song.mode === 'lyrics' ? (
+                                    <View style={{ padding: 4 }}>
+                                        <Text style={{
+                                            fontSize: section.lyricsSize || 14,
+                                            color: section.lyricsColor || '#000000',
+                                            textAlign: section.lyricsAlign || 'left',
+                                            fontFamily: 'Helvetica',
+                                            lineHeight: 1.4
+                                        }}>
+                                            {section.lyrics || ''}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.measureGrid}>
+                                        {section.measures.map((measure) => (
+                                            <MeasureView key={measure.id} measure={measure} />
+                                        ))}
+                                    </View>
+                                )}
                             </View>
                         ))}
 

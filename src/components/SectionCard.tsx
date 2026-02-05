@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Copy } from 'lucide-react';
+import { GripVertical, Trash2, Copy, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import type { Section } from '../types';
 import { useSongStore } from '../store/useSongStore';
 import { MeasureCard } from './MeasureCard';
@@ -26,6 +26,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
     };
 
     const { removeSection, duplicateSection, updateSection, addMeasure } = useSongStore();
+    const songMode = useSongStore(state => state.songs.find(s => s.id === songId)?.mode);
 
     return (
         <div
@@ -50,6 +51,40 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                     className="bg-transparent text-white font-medium focus:outline-none focus:ring-1 focus:ring-[#0a84ff] rounded px-2 py-0.5 w-full max-w-[200px] placeholder-[#636366]"
                 />
 
+                {/* Lyrics Settings Controls */}
+                {songMode === 'lyrics' && (
+                    <div className="flex items-center gap-2 mx-2">
+                        <input
+                            type="number"
+                            value={section.lyricsSize || 14}
+                            onChange={(e) => updateSection(songId, section.id, { lyricsSize: parseInt(e.target.value) })}
+                            className="w-12 bg-[#3a3a3c] text-white text-xs rounded px-1 text-center py-1 border border-[#48484a] focus:border-[#0a84ff] outline-none"
+                            title="Font Size (px)"
+                        />
+                        <button
+                            onClick={() => {
+                                const alignments: ('left' | 'center' | 'right')[] = ['left', 'center', 'right'];
+                                const currentIndex = alignments.indexOf(section.lyricsAlign || 'left');
+                                const nextIndex = (currentIndex + 1) % alignments.length;
+                                updateSection(songId, section.id, { lyricsAlign: alignments[nextIndex] });
+                            }}
+                            className="p-1.5 text-[#636366] hover:text-[#0a84ff] hover:bg-[#3a3a3c] rounded-md transition-colors"
+                            title={`Alignment: ${section.lyricsAlign || 'left'}`}
+                        >
+                            {section.lyricsAlign === 'center' ? <AlignCenter size={16} /> :
+                                section.lyricsAlign === 'right' ? <AlignRight size={16} /> :
+                                    <AlignLeft size={16} />}
+                        </button>
+                        <input
+                            type="color"
+                            value={section.lyricsColor || '#ffffff'}
+                            onChange={(e) => updateSection(songId, section.id, { lyricsColor: e.target.value })}
+                            className="w-6 h-6 rounded cursor-pointer bg-transparent border-none p-0 overflow-hidden"
+                            title="Text Color"
+                        />
+                    </div>
+                )}
+
                 <div className="flex-1" />
 
                 {/* Actions */}
@@ -71,26 +106,44 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 </div>
             </div>
 
-            <div className="p-4 bg-[#1c1c1e]">
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
-                    {section.measures.map((measure, index) => (
-                        <MeasureCard
-                            key={measure.id}
-                            songId={songId}
-                            sectionId={section.id}
-                            measure={measure}
-                            index={index}
-                        />
-                    ))}
+            <div className={`p-4 bg-[#1c1c1e] ${songMode === 'lyrics' ? '' : 'flex justify-center'}`}>
+                {songMode === 'lyrics' ? (
+                    <textarea
+                        value={section.lyrics || ''}
+                        onChange={(e) => updateSection(songId, section.id, { lyrics: e.target.value })}
+                        className="w-full h-auto min-h-[150px] bg-[#2c2c2e]/50 text-white rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-[#0a84ff]/50 resize-y whitespace-pre-wrap transition-colors font-medium"
+                        style={{
+                            fontSize: `${(section.lyricsSize || 14) * 2}px`,
+                            color: 'white',
+                            lineHeight: '1.5',
+                            fontFamily: 'inherit'
+                        }}
+                        placeholder="Paste lyrics here..."
+                    />
+                ) : (
+                    <div className="flex flex-wrap justify-center gap-2 w-full max-w-5xl">
+                        {section.measures.map((measure, index) => (
+                            <div key={measure.id} className="w-[23%] sm:w-[11.5%] min-w-[80px]">
+                                <MeasureCard
+                                    songId={songId}
+                                    sectionId={section.id}
+                                    measure={measure}
+                                    index={index}
+                                />
+                            </div>
+                        ))}
 
-                    <button
-                        onClick={() => addMeasure(songId, section.id)}
-                        className="aspect-[4/3] border border-dashed border-[#3a3a3c] hover:border-[#0a84ff]/50 rounded-lg flex items-center justify-center text-[#636366] hover:text-[#0a84ff] transition-colors bg-[#2c2c2e]/20 hover:bg-[#2c2c2e]/50"
-                        title="Add Measure"
-                    >
-                        <Plus size={20} />
-                    </button>
-                </div>
+                        <div className="w-[23%] sm:w-[11.5%] min-w-[80px]">
+                            <button
+                                onClick={() => addMeasure(songId, section.id)}
+                                className="w-full aspect-[4/3] border border-dashed border-[#3a3a3c] hover:border-[#0a84ff]/50 rounded-lg flex items-center justify-center text-[#636366] hover:text-[#0a84ff] transition-colors bg-[#2c2c2e]/20 hover:bg-[#2c2c2e]/50"
+                                title="Add Measure"
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

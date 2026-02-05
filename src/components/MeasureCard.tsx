@@ -64,9 +64,9 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
             </button>
 
-            <div className="w-full h-full flex items-center justify-center p-2">
+            <div className="w-full h-full flex items-center justify-center p-0.5">
                 <input
-                    className="w-full bg-transparent text-center font-bold text-lg text-white focus:outline-none placeholder-[#3a3a3c] caret-[#0a84ff]"
+                    className="w-full h-full bg-transparent text-center font-bold text-3xl sm:text-5xl text-white focus:outline-none placeholder-[#3a3a3c] caret-[#0a84ff] p-0 leading-none tracking-tight"
                     value={text}
                     onChange={e => setText(e.target.value)}
                     onBlur={handleBlur}

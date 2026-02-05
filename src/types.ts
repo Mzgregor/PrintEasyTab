@@ -17,10 +17,15 @@ export type Section = {
     type: SectionType;
     label: string; // e.g. "Verse 1"
     measures: Measure[];
+    lyrics?: string; // Lyrics content
+    lyricsSize?: number; // Font size for lyrics
+    lyricsColor?: string; // Hex color for lyrics
+    lyricsAlign?: 'left' | 'center' | 'right'; // Text alignment
 };
 
 export type Song = {
     id: string; // Unique ID for the song
+    mode: 'chords' | 'lyrics'; // Display mode
     title: string;
     artist: string;
     capo: number; // 0-10, 0 = no capo
