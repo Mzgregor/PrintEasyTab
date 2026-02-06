@@ -160,14 +160,14 @@ export const Metronome: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-full bg-[#1c1c1e] text-white p-8">
-            <div className="w-full max-w-md bg-[#2c2c2e] rounded-3xl p-10 shadow-2xl border border-white/5 space-y-10">
+        <div className="flex flex-col items-center justify-center h-full bg-bg-primary text-text-primary p-8">
+            <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-10 shadow-2xl border border-border-main space-y-10">
                 <div className="text-center space-y-2">
-                    <h2 className="text-[#8e8e93] text-sm font-bold uppercase tracking-[0.2em]">Metronome</h2>
+                    <h2 className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em]">Metronome</h2>
                     <div className="flex items-center justify-center gap-6">
                         <button
                             onClick={() => changeBpm(-1)}
-                            className="p-3 bg-[#3a3a3c] rounded-full hover:bg-[#48484a] active:scale-90 transition-all"
+                            className="p-3 bg-bg-tertiary rounded-full hover:bg-bg-tertiary/80 active:scale-90 transition-all text-text-primary"
                         >
                             <Minus size={24} />
                         </button>
@@ -177,14 +177,14 @@ export const Metronome: React.FC = () => {
                                 type="number"
                                 value={bpm}
                                 onChange={(e) => setBpm(Math.min(Math.max(parseInt(e.target.value) || 40, 40), 240))}
-                                className="bg-transparent text-8xl font-black text-center w-48 focus:outline-none focus:text-[#0a84ff] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="bg-transparent text-8xl font-black text-center w-48 focus:outline-none focus:text-accent transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-text-primary"
                             />
-                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold text-[#636366]">BPM</div>
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold text-text-secondary">BPM</div>
                         </div>
 
                         <button
                             onClick={() => changeBpm(1)}
-                            className="p-3 bg-[#3a3a3c] rounded-full hover:bg-[#48484a] active:scale-90 transition-all"
+                            className="p-3 bg-bg-tertiary rounded-full hover:bg-bg-tertiary/80 active:scale-90 transition-all text-text-primary"
                         >
                             <Plus size={24} />
                         </button>
@@ -193,15 +193,15 @@ export const Metronome: React.FC = () => {
 
                 <div className="flex flex-col items-center gap-8">
                     {/* Sound Selection */}
-                    <div className="flex bg-[#1c1c1e] p-1 rounded-xl w-full border border-white/5">
+                    <div className="flex bg-bg-primary p-1 rounded-xl w-full border border-border-main">
                         {(['electronic', 'woodblock', 'clap', 'shaker'] as const).map((type) => (
                             <button
                                 key={type}
                                 onClick={() => setSoundType(type)}
                                 className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all
                                     ${soundType === type
-                                        ? 'bg-[#3a3a3c] text-[#0a84ff] shadow-lg'
-                                        : 'text-[#636366] hover:text-white'
+                                        ? 'bg-bg-tertiary text-accent shadow-lg'
+                                        : 'text-text-secondary hover:text-text-primary'
                                     }`}
                             >
                                 {type}
@@ -215,7 +215,7 @@ export const Metronome: React.FC = () => {
                         max="240"
                         value={bpm}
                         onChange={(e) => setBpm(parseInt(e.target.value))}
-                        className="w-full h-2 bg-[#3a3a3c] rounded-lg appearance-none cursor-pointer accent-[#0a84ff]"
+                        className="w-full h-2 bg-bg-tertiary rounded-lg appearance-none cursor-pointer accent-accent"
                     />
 
                     <button
@@ -223,7 +223,7 @@ export const Metronome: React.FC = () => {
                         className={`w-24 h-24 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-xl
                             ${isPlaying
                                 ? 'bg-red-500 hover:bg-red-400 shadow-red-500/20'
-                                : 'bg-[#0a84ff] hover:bg-[#0071e3] shadow-blue-500/20'
+                                : 'bg-accent hover:opacity-90 shadow-accent/20'
                             }`}
                     >
                         {isPlaying ? <Square size={32} fill="white" /> : <Play size={32} fill="white" className="ml-1" />}
@@ -237,17 +237,17 @@ export const Metronome: React.FC = () => {
                             key={i}
                             className={`w-4 h-4 rounded-full transition-all duration-75 
                                 ${!isPlaying
-                                    ? 'bg-[#3a3a3c]'
+                                    ? 'bg-bg-tertiary'
                                     : currentBeat === i
-                                        ? i === 0 ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)] scale-125' : 'bg-[#0a84ff] shadow-[0_0_15px_rgba(10,132,255,0.5)] scale-110'
-                                        : 'bg-[#3a3a3c]'
+                                        ? i === 0 ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)] scale-125' : 'bg-accent shadow-[0_0_15px_var(--color-accent)] scale-110'
+                                        : 'bg-bg-tertiary'
                                 }`}
                         />
                     ))}
                 </div>
             </div>
 
-            <p className="mt-8 text-[#636366] text-sm text-center max-w-xs">
+            <p className="mt-8 text-text-secondary text-sm text-center max-w-xs">
                 Perfect for practice. Precision timing powered by Web Audio.
             </p>
         </div>

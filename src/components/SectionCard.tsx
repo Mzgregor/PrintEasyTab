@@ -32,14 +32,14 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
         <div
             ref={setNodeRef}
             style={style}
-            className="rounded-xl overflow-hidden bg-[#1c1c1e] border border-[#2c2c2e] shadow-sm group transition-colors hover:border-[#3a3a3c]"
+            className="rounded-xl overflow-hidden bg-bg-secondary border border-border-main shadow-sm group transition-all hover:border-accent/50"
         >
-            <div className="flex items-center p-3 bg-[#2c2c2e]/30 border-b border-[#2c2c2e] gap-3">
+            <div className="flex items-center p-3 bg-bg-tertiary/50 border-b border-border-main gap-3">
                 {/* Drag Handle */}
                 <button
                     {...attributes}
                     {...listeners}
-                    className="text-[#636366] hover:text-[#aeaeb2] cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors"
+                    className="text-text-secondary hover:text-text-primary cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors"
                 >
                     <GripVertical size={16} />
                 </button>
@@ -48,7 +48,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 <input
                     value={section.label}
                     onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
-                    className="bg-transparent text-white font-medium focus:outline-none focus:ring-1 focus:ring-[#0a84ff] rounded px-2 py-0.5 w-full max-w-[200px] placeholder-[#636366]"
+                    className="bg-transparent text-text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent rounded px-2 py-0.5 w-full max-w-[200px] placeholder-text-secondary"
                 />
 
                 {/* Lyrics Settings Controls */}
@@ -58,7 +58,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                             type="number"
                             value={section.lyricsSize || 14}
                             onChange={(e) => updateSection(songId, section.id, { lyricsSize: parseInt(e.target.value) })}
-                            className="w-12 bg-[#3a3a3c] text-white text-xs rounded px-1 text-center py-1 border border-[#48484a] focus:border-[#0a84ff] outline-none"
+                            className="w-12 bg-bg-tertiary text-text-primary text-xs rounded px-1 text-center py-1 border border-border-main focus:border-accent outline-none"
                             title="Font Size (px)"
                         />
                         <button
@@ -68,7 +68,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                                 const nextIndex = (currentIndex + 1) % alignments.length;
                                 updateSection(songId, section.id, { lyricsAlign: alignments[nextIndex] });
                             }}
-                            className="p-1.5 text-[#636366] hover:text-[#0a84ff] hover:bg-[#3a3a3c] rounded-md transition-colors"
+                            className="p-1.5 text-text-secondary hover:text-accent hover:bg-bg-tertiary rounded-md transition-colors"
                             title={`Alignment: ${section.lyricsAlign || 'left'}`}
                         >
                             {section.lyricsAlign === 'center' ? <AlignCenter size={16} /> :
@@ -91,14 +91,14 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => duplicateSection(songId, section.id)}
-                        className="p-1.5 text-[#636366] hover:text-[#0a84ff] hover:bg-[#3a3a3c] rounded-md transition-colors"
+                        className="p-1.5 text-text-secondary hover:text-accent hover:bg-bg-tertiary rounded-md transition-colors"
                         title="Duplicate"
                     >
                         <Copy size={16} />
                     </button>
                     <button
                         onClick={() => removeSection(songId, section.id)}
-                        className="p-1.5 text-[#636366] hover:text-red-500 hover:bg-[#3a3a3c] rounded-md transition-colors"
+                        className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-bg-tertiary rounded-md transition-colors"
                         title="Delete"
                     >
                         <Trash2 size={16} />
@@ -106,15 +106,15 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 </div>
             </div>
 
-            <div className={`p-4 bg-[#1c1c1e] ${songMode === 'lyrics' ? '' : 'flex justify-center'}`}>
+            <div className={`p-4 bg-bg-secondary ${songMode === 'lyrics' ? '' : 'flex justify-center'}`}>
                 {songMode === 'lyrics' ? (
                     <textarea
                         value={section.lyrics || ''}
                         onChange={(e) => updateSection(songId, section.id, { lyrics: e.target.value })}
-                        className="w-full h-auto min-h-[150px] bg-[#2c2c2e]/50 text-white rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-[#0a84ff]/50 resize-y whitespace-pre-wrap transition-colors font-medium"
+                        className="w-full h-auto min-h-[150px] bg-bg-tertiary/30 text-text-primary rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-accent resize-y whitespace-pre-wrap transition-colors font-medium border border-border-main"
                         style={{
                             fontSize: `${(section.lyricsSize || 14) * 2}px`,
-                            color: 'white',
+                            color: 'var(--text-primary)',
                             lineHeight: '1.5',
                             fontFamily: 'inherit'
                         }}
@@ -136,7 +136,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                         <div className="w-[23%] sm:w-[11.5%] min-w-[80px]">
                             <button
                                 onClick={() => addMeasure(songId, section.id)}
-                                className="w-full aspect-[4/3] border border-dashed border-[#3a3a3c] hover:border-[#0a84ff]/50 rounded-lg flex items-center justify-center text-[#636366] hover:text-[#0a84ff] transition-colors bg-[#2c2c2e]/20 hover:bg-[#2c2c2e]/50"
+                                className="w-full aspect-[4/3] border border-dashed border-border-main hover:border-accent rounded-lg flex items-center justify-center text-text-secondary hover:text-accent transition-colors bg-bg-tertiary/10 hover:bg-bg-tertiary/40"
                                 title="Add Measure"
                             >
                                 <Plus size={20} />

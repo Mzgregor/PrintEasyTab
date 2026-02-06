@@ -5,32 +5,57 @@
 @import "@fontsource/inter/700.css";
 
 @theme {
-  /* iOS / macOS Inspired Dark Palette */
-  --color-ios-bg: #000000;
-  --color-ios-bg-secondary: #1c1c1e;
-  /* Grouped Table View Background */
-  --color-ios-bg-tertiary: #2c2c2e;
-  --color-ios-blue: #0a84ff;
-  --color-ios-gray: #8e8e93;
-  --color-ios-gray2: #636366;
-  --color-ios-gray3: #48484a;
-  --color-ios-gray4: #3a3a3c;
-  --color-ios-gray5: #2c2c2e;
-  --color-ios-gray6: #1c1c1e;
-  --color-ios-separator: #38383a;
+  /* Theme Variable Mapping to Tailwind Classes */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-muted);
+  --color-border-main: var(--border-main);
+}
 
-  /* Keep legacy slate for compatibility but map them if needed or use directly */
-  --color-slate-950: #000000;
-  --color-slate-900: #1c1c1e;
-  --color-slate-800: #2c2c2e;
-  --color-slate-700: #3a3a3c;
-  --color-slate-600: #48484a;
+/* Base Styles */
+:root {
+  /* Default Dark (Premium Black) */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0c;
+  --bg-tertiary: #161618;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --accent: #0070f3;
+  --accent-muted: rgba(0, 112, 243, 0.1);
+  --border-main: #27272a;
+}
+
+[data-theme='light'] {
+  --bg-primary: #f4f4f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e4e4e7;
+  --text-primary: #09090b;
+  --text-secondary: #71717a;
+  --accent: #2563eb;
+  --accent-muted: rgba(37, 99, 235, 0.1);
+  --border-main: #e4e4e7;
+}
+
+[data-theme='midnight'] {
+  --bg-primary: #0d0f1a;
+  --bg-secondary: #161925;
+  --bg-tertiary: #1f2335;
+  --text-primary: #c0caf5;
+  --text-secondary: #565f89;
+  --accent: #bb9af7;
+  --accent-muted: rgba(187, 154, 247, 0.1);
+  --border-main: #24283b;
 }
 
 @layer base {
   body {
-    @apply bg-[var(--color-ios-bg)] text-slate-100 antialiased font-sans selection:bg-[var(--color-ios-blue)] selection:text-white;
+    @apply bg-bg-primary text-text-primary antialiased font-sans selection:bg-accent selection:text-white;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Custom Scrollbar for Mac feel */
@@ -54,22 +79,22 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-bg-secondary/30 backdrop-blur-xl border border-white/10;
   }
 
   .glass-card {
-    @apply bg-[#1c1c1e] border border-[#2c2c2e] shadow-xl;
+    @apply bg-bg-secondary border border-border-main shadow-xl;
   }
 
   .ios-input {
-    @apply bg-[#2c2c2e] border-none rounded-lg px-3 py-2 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#0a84ff] transition-all outline-none;
+    @apply bg-bg-tertiary border-none rounded-lg px-3 py-2 text-text-primary placeholder-text-secondary focus:ring-2 focus:ring-accent transition-all outline-none;
   }
 
   .ios-btn {
-    @apply bg-[#0a84ff] hover:bg-[#0071e3] text-white font-medium rounded-full px-4 py-2 transition-all active:scale-95 shadow-lg shadow-blue-500/20;
+    @apply bg-accent hover:opacity-90 text-white font-medium rounded-full px-4 py-2 transition-all active:scale-95 shadow-lg shadow-accent/20;
   }
 
   .ios-btn-secondary {
-    @apply bg-[#2c2c2e] hover:bg-[#3a3a3c] text-blue-400 font-medium rounded-full px-4 py-2 transition-all active:scale-95;
+    @apply bg-bg-tertiary hover:bg-bg-tertiary/80 text-accent font-medium rounded-full px-4 py-2 transition-all active:scale-95;
   }
 }

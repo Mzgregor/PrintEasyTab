@@ -18,13 +18,13 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
     return (
         <div className="space-y-6 relative">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white tracking-tight">
-                    {song.title || <span className="text-[#636366] italic">New Song</span>}
+                <h2 className="text-2xl font-bold text-text-primary tracking-tight">
+                    {song.title || <span className="text-text-secondary italic">New Song</span>}
                 </h2>
                 {songCount > 1 && (
                     <button
                         onClick={() => removeSong(songId)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#2c2c2e] hover:bg-red-500/20 text-[#8e8e93] hover:text-red-500 transition-all"
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-bg-tertiary hover:bg-red-500/20 text-text-secondary hover:text-red-500 transition-all"
                         title="Remove Song"
                     >
                         <Trash2 size={16} />
@@ -35,7 +35,7 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
             {/* Inputs Row - Title, Artist, Capo */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                 <div className="md:col-span-5 space-y-1.5">
-                    <label htmlFor={`title-${songId}`} className="text-[11px] font-semibold text-[#8e8e93] uppercase tracking-wide ml-1">Title</label>
+                    <label htmlFor={`title-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Title</label>
                     <input
                         id={`title-${songId}`}
                         type="text"
@@ -46,7 +46,7 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                     />
                 </div>
                 <div className="md:col-span-5 space-y-1.5">
-                    <label htmlFor={`artist-${songId}`} className="text-[11px] font-semibold text-[#8e8e93] uppercase tracking-wide ml-1">Artist</label>
+                    <label htmlFor={`artist-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Artist</label>
                     <input
                         id={`artist-${songId}`}
                         type="text"
@@ -57,7 +57,7 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                     />
                 </div>
                 <div className="md:col-span-2 space-y-1.5">
-                    <label htmlFor={`capo-${songId}`} className="text-[11px] font-semibold text-[#8e8e93] uppercase tracking-wide ml-1">Capo</label>
+                    <label htmlFor={`capo-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Capo</label>
                     <div className="relative">
                         <input
                             id={`capo-${songId}`}

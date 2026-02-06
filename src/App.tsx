@@ -6,7 +6,9 @@ import { SongPDF } from './components/SongPDF';
 import { SongBlock } from './components/SongBlock';
 import { EditorOptionsPanel } from './components/EditorOptionsPanel';
 import { Metronome } from './components/Metronome';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Download } from 'lucide-react';
+import { GuitarTuner } from './components/GuitarTuner';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -46,24 +48,29 @@ function App() {
     <ErrorBoundary>
       <Layout
         headerActions={
-          <PDFDownloadLink
-            document={<SongPDF songs={songs} />}
-            fileName="chord-sheet.pdf"
-            className="ios-btn flex items-center gap-2 decoration-0 no-underline"
-          >
-            {({ loading }) => (
-              <>
-                <Download size={16} />
-                <span>{loading ? 'Generating...' : 'Download PDF'}</span>
-              </>
-            )}
-          </PDFDownloadLink>
+          <>
+            <ThemeSwitcher />
+            <PDFDownloadLink
+              document={<SongPDF songs={songs} />}
+              fileName="chord-sheet.pdf"
+              className="ios-btn flex items-center gap-2 decoration-0 no-underline"
+            >
+              {({ loading }) => (
+                <>
+                  <Download size={16} />
+                  <span>{loading ? 'Generating...' : 'Download PDF'}</span>
+                </>
+              )}
+            </PDFDownloadLink>
+          </>
         }
         editor={
           <div className="space-y-8 pb-10">
             <EditorOptionsPanel />
             {viewMode === 'metronome' ? (
               <Metronome />
+            ) : viewMode === 'tuner' ? (
+              <GuitarTuner />
             ) : (
               songs.map((song, index) => (
                 <SongBlock key={song.id} song={song} index={index} />

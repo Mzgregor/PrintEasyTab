@@ -51,14 +51,14 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
     };
 
     return (
-        <div className="relative aspect-[4/3] bg-[#2c2c2e]/40 border border-[#3a3a3c] rounded-lg hover:border-[#0a84ff]/50 transition-colors group shadow-sm">
-            <span className="absolute top-1 left-2 text-[10px] text-[#636366] select-none font-medium">
+        <div className="relative aspect-[4/3] bg-bg-tertiary/40 border border-border-main rounded-lg hover:border-accent transition-all group shadow-sm">
+            <span className="absolute top-1 left-2 text-[10px] text-text-secondary select-none font-medium">
                 {index + 1}
             </span>
 
             <button
                 onClick={() => removeMeasure(songId, sectionId, measure.id)}
-                className="absolute top-1 right-1 text-[#8e8e93] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                className="absolute top-1 right-1 text-text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
                 title="Remove Measure"
             >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
@@ -66,7 +66,7 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
 
             <div className="w-full h-full flex items-center justify-center p-0.5">
                 <input
-                    className="w-full h-full bg-transparent text-center font-bold text-3xl sm:text-5xl text-white focus:outline-none placeholder-[#3a3a3c] caret-[#0a84ff] p-0 leading-none tracking-tight"
+                    className="w-full h-full bg-transparent text-center font-bold text-3xl sm:text-5xl text-text-primary focus:outline-none placeholder-text-secondary caret-accent p-0 leading-none tracking-tight"
                     value={text}
                     onChange={e => setText(e.target.value)}
                     onBlur={handleBlur}

@@ -22,9 +22,13 @@ interface SongState {
     updateMeasure: (songId: string, sectionId: string, measureId: string, chords: ChordBlock[]) => void;
 
     toggleMode: (songId: string) => void;
+    setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome';
-    setViewMode: (mode: 'editor' | 'metronome') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner') => void;
+
+    theme: 'light' | 'dark' | 'midnight';
+    setTheme: (theme: 'light' | 'dark' | 'midnight') => void;
 }
 
 const createMeasure = (): Measure => ({
@@ -44,7 +48,7 @@ const createSection = (type: SectionType = 'Verse', index: number): Section => (
     lyricsAlign: 'left'
 });
 
-const createSong = (index: number): Song => ({
+const createSong = (): Song => ({
     id: uuidv4(),
     mode: 'chords',
     title: '',
@@ -54,12 +58,12 @@ const createSong = (index: number): Song => ({
 });
 
 export const useSongStore = create<SongState>((set) => ({
-    songs: [createSong(0)], // Initial single song
+    songs: [createSong()], // Initial single song
 
     addSong: () => set((state) => {
         if (state.songs.length >= 4) return {};
         return {
-            songs: [...state.songs, createSong(state.songs.length)]
+            songs: [...state.songs, createSong()]
         };
     }),
 
@@ -215,6 +219,15 @@ export const useSongStore = create<SongState>((set) => ({
         )
     })),
 
+    setMode: (songId, mode) => set((state) => ({
+        songs: state.songs.map(s =>
+            s.id === songId ? { ...s, mode } : s
+        )
+    })),
+
     viewMode: 'editor',
-    setViewMode: (viewMode) => set({ viewMode })
+    setViewMode: (viewMode) => set({ viewMode }),
+
+    theme: 'dark',
+    setTheme: (theme) => set({ theme })
 }));

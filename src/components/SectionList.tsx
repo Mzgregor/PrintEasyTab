@@ -34,7 +34,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest">Structure</h3>
+                <h3 className="text-text-secondary text-xs font-bold uppercase tracking-widest">Structure</h3>
             </div>
 
             <DndContext
@@ -49,7 +49,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
                 >
                     <div className="space-y-3 min-h-[50px]">
                         {song.sections.length === 0 && (
-                            <div className="text-center py-8 text-slate-600 border border-slate-800 rounded-lg border-dashed">
+                            <div className="text-center py-8 text-text-secondary border border-border-main rounded-lg border-dashed">
                                 Start by adding a section below
                             </div>
                         )}
@@ -66,11 +66,11 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
                     <button
                         key={type}
                         onClick={() => addSection(songId, type)}
-                        className="group relative overflow-hidden bg-[#2c2c2e] hover:bg-[#3a3a3c] border border-[#38383a] rounded-lg p-3 transition-all active:scale-[0.98]"
+                        className="group relative overflow-hidden bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border-main rounded-lg p-3 transition-all active:scale-[0.98]"
                     >
                         <div className="flex items-center justify-center gap-2 relative z-10">
-                            <Plus size={14} className="text-[#0a84ff]" />
-                            <span className="text-[12px] font-semibold uppercase tracking-wider text-gray-300 group-hover:text-white transition-colors">
+                            <Plus size={14} className="text-accent" />
+                            <span className="text-[12px] font-semibold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
                                 {type}
                             </span>
                         </div>
