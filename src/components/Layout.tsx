@@ -19,7 +19,8 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
         songs, setMode, addSong,
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
-        setViewMode, viewMode
+        setViewMode, viewMode,
+        logout
     } = useSongStore();
     const currentSong = songs[0];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -99,7 +100,13 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             <span className="font-bold text-sm tracking-wide">Mes Tabs/Lyrics</span>
                         </button>
 
-                        <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group text-red-400">
+                        <button
+                            onClick={() => {
+                                logout();
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group text-red-400"
+                        >
                             <LogOut className="group-hover:text-red-500 transition-colors" size={20} />
                             <span className="font-bold text-sm tracking-wide">Se déconnecter</span>
                         </button>

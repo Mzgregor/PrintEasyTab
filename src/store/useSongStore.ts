@@ -24,8 +24,8 @@ interface SongState {
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome' | 'tuner' | 'help';
-    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth') => void;
 
     theme: 'light' | 'dark' | 'midnight';
     setTheme: (theme: 'light' | 'dark' | 'midnight') => void;
@@ -35,6 +35,11 @@ interface SongState {
     setGlobalLyricsFontSize: (size: number) => void;
     globalLyricsAlignment: 'left' | 'center' | 'right';
     setGlobalLyricsAlignment: (align: 'left' | 'center' | 'right') => void;
+
+    // Auth state
+    isAuthenticated: boolean;
+    login: (email: string) => void;
+    logout: () => void;
 }
 
 const createMeasure = (): Measure => ({
@@ -244,5 +249,10 @@ export const useSongStore = create<SongState>((set) => ({
     globalLyricsFontSize: 16,
     setGlobalLyricsFontSize: (globalLyricsFontSize) => set({ globalLyricsFontSize }),
     globalLyricsAlignment: 'left',
-    setGlobalLyricsAlignment: (globalLyricsAlignment) => set({ globalLyricsAlignment })
+    setGlobalLyricsAlignment: (globalLyricsAlignment) => set({ globalLyricsAlignment }),
+
+    // Auth implementation
+    isAuthenticated: false,
+    login: (email) => set({ isAuthenticated: true, viewMode: 'editor' }),
+    logout: () => set({ isAuthenticated: false, viewMode: 'auth' })
 }));

@@ -7,6 +7,7 @@ import { Metronome } from './components/Metronome';
 import { Download } from 'lucide-react';
 import { GuitarTuner } from './components/GuitarTuner';
 import { HelpPage } from './components/HelpPage';
+import { LoginPage } from './components/LoginPage';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -42,6 +43,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 function App() {
   const songs = useSongStore((state) => state.songs);
   const viewMode = useSongStore((state) => state.viewMode);
+  const isAuthenticated = useSongStore((state) => state.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <LoginPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (viewMode === 'help') {
     return (
