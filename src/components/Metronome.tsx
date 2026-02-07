@@ -82,13 +82,13 @@ export const Metronome: React.FC = () => {
             const envelope = audioContext.current.createGain();
 
             if (currentSound === 'electronic') {
-                osc.frequency.value = isDownbeat ? 880 : 440;
-                envelope.gain.value = 1;
+                osc.frequency.value = isDownbeat ? 880 : 700; // Subtle pitch difference
+                envelope.gain.setValueAtTime(1, time); // Anchored to scheduled time
                 envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
             } else {
                 // Woodblock
-                osc.frequency.value = isDownbeat ? 1200 : 800;
-                envelope.gain.value = 1;
+                osc.frequency.value = isDownbeat ? 1200 : 900; // Subtle pitch difference
+                envelope.gain.setValueAtTime(1, time); // Anchored to scheduled time
                 envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
             }
 
@@ -106,14 +106,14 @@ export const Metronome: React.FC = () => {
 
             if (currentSound === 'clap') {
                 filter.type = 'highpass';
-                filter.frequency.value = isDownbeat ? 1000 : 1500;
-                envelope.gain.value = 1;
+                filter.frequency.value = isDownbeat ? 1000 : 1400; // Subtle filter difference
+                envelope.gain.setValueAtTime(1, time); // Anchored to scheduled time
                 envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
             } else {
                 // Shaker
                 filter.type = 'bandpass';
-                filter.frequency.value = 3000;
-                envelope.gain.value = isDownbeat ? 0.8 : 0.4;
+                filter.frequency.value = isDownbeat ? 3000 : 3500; // Subtle filter difference
+                envelope.gain.setValueAtTime(0.8, time); // Anchored to scheduled time
                 envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
             }
 

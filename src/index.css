@@ -46,8 +46,8 @@
   --bg-tertiary: #1f2335;
   --text-primary: #c0caf5;
   --text-secondary: #565f89;
-  --accent: #bb9af7;
-  --accent-muted: rgba(187, 154, 247, 0.1);
+  --accent: #f59e0b;
+  --accent-muted: rgba(245, 158, 11, 0.1);
   --border-main: #24283b;
 }
 
@@ -96,5 +96,13 @@
 
   .ios-btn-secondary {
     @apply bg-bg-tertiary hover:bg-bg-tertiary/80 text-accent font-medium rounded-full px-4 py-2 transition-all active:scale-95;
+  }
+
+  .h-80 {
+    height: calc(var(--spacing) * 60);
+  }
+
+  .blob-btn {
+    @apply flex items-center justify-center rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] transition-all duration-500 hover:rounded-[50%_50%_50%_50%] active:scale-95 shadow-2xl;
   }
 }

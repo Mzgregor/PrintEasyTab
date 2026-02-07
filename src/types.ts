@@ -21,6 +21,10 @@ export type Section = {
     lyricsSize?: number; // Font size for lyrics
     lyricsColor?: string; // Hex color for lyrics
     lyricsAlign?: 'left' | 'center' | 'right'; // Text alignment
+    lyricsFont?: string; // Font family
+    lyricsBold?: boolean; // Bold text
+    lyricsItalic?: boolean; // Italic text
+    lyricsBackground?: string; // Highlight color
 };
 
 export type Song = {

@@ -122,12 +122,18 @@ export const SongPDF: React.FC<{ songs: Song[] }> = ({ songs }) => {
                             <View key={section.id} style={styles.section} wrap={false}>
                                 <Text style={styles.sectionLabel}>{section.label}</Text>
                                 {song.mode === 'lyrics' ? (
-                                    <View style={{ padding: 4 }}>
+                                    <View style={{
+                                        padding: 4,
+                                        backgroundColor: section.lyricsBackground || 'transparent'
+                                    }}>
                                         <Text style={{
                                             fontSize: section.lyricsSize || 14,
                                             color: section.lyricsColor || '#000000',
                                             textAlign: section.lyricsAlign || 'left',
-                                            fontFamily: 'Helvetica',
+                                            fontFamily: section.lyricsFont === 'monospace' ? 'Courier' :
+                                                section.lyricsFont === 'Georgia, serif' ? 'Times-Roman' : 'Helvetica',
+                                            fontWeight: section.lyricsBold ? 'bold' : 'normal',
+                                            fontStyle: section.lyricsItalic ? 'italic' : 'normal',
                                             lineHeight: 1.4
                                         }}>
                                             {section.lyrics || ''}

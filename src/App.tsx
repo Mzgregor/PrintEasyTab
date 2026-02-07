@@ -1,14 +1,13 @@
 import React from 'react';
-import { Layout } from './components/Layout';
 import { useSongStore } from './store/useSongStore';
-import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import { Layout } from './components/Layout';
 import { SongPDF } from './components/SongPDF';
 import { SongBlock } from './components/SongBlock';
-import { EditorOptionsPanel } from './components/EditorOptionsPanel';
 import { Metronome } from './components/Metronome';
-import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Download } from 'lucide-react';
 import { GuitarTuner } from './components/GuitarTuner';
+import { HelpPage } from './components/HelpPage';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -44,29 +43,33 @@ function App() {
   const songs = useSongStore((state) => state.songs);
   const viewMode = useSongStore((state) => state.viewMode);
 
+  if (viewMode === 'help') {
+    return (
+      <ErrorBoundary>
+        <HelpPage />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <Layout
-        headerActions={
-          <>
-            <ThemeSwitcher />
-            <PDFDownloadLink
-              document={<SongPDF songs={songs} />}
-              fileName="chord-sheet.pdf"
-              className="ios-btn flex items-center gap-2 decoration-0 no-underline"
-            >
-              {({ loading }) => (
-                <>
-                  <Download size={16} />
-                  <span>{loading ? 'Generating...' : 'Download PDF'}</span>
-                </>
-              )}
-            </PDFDownloadLink>
-          </>
+        pdfAction={
+          <PDFDownloadLink
+            document={<SongPDF songs={songs} />}
+            fileName="chord-sheet.pdf"
+            className="flex items-center gap-3 px-8 py-3 bg-accent text-white rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-accent-light transition-all active:scale-95 no-underline border border-white/10"
+          >
+            {({ loading }) => (
+              <>
+                <Download size={16} strokeWidth={3} />
+                <span>{loading ? 'Preparing...' : 'Download PDF'}</span>
+              </>
+            )}
+          </PDFDownloadLink>
         }
         editor={
-          <div className="space-y-8 pb-10">
-            <EditorOptionsPanel />
+          <div className="pb-10">
             {viewMode === 'metronome' ? (
               <Metronome />
             ) : viewMode === 'tuner' ? (

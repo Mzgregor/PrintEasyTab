@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Copy, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { GripVertical, Trash2, Copy, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Highlighter, Type as TypeIcon, Palette } from 'lucide-react';
 import type { Section } from '../types';
 import { useSongStore } from '../store/useSongStore';
 import { MeasureCard } from './MeasureCard';
@@ -26,7 +26,12 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
     };
 
     const { removeSection, duplicateSection, updateSection, addMeasure } = useSongStore();
+    const { globalLyricsFontSize, globalLyricsAlignment, theme } = useSongStore();
     const songMode = useSongStore(state => state.songs.find(s => s.id === songId)?.mode);
+
+    // Dynamic color fallback based on theme
+    const defaultColor = theme === 'light' ? '#1f2937' : '#ffffff';
+    const activeColor = section.lyricsColor || defaultColor;
 
     return (
         <div
@@ -34,54 +39,124 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
             style={style}
             className="rounded-xl overflow-hidden bg-bg-secondary border border-border-main shadow-sm group transition-all hover:border-accent/50"
         >
-            <div className="flex items-center p-3 bg-bg-tertiary/50 border-b border-border-main gap-3">
-                {/* Drag Handle */}
-                <button
-                    {...attributes}
-                    {...listeners}
-                    className="text-text-secondary hover:text-text-primary cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors"
-                >
-                    <GripVertical size={16} />
-                </button>
+            <div className="flex flex-wrap items-center p-3 bg-bg-tertiary/50 border-b border-border-main gap-3">
+                <div className="flex items-center gap-3">
+                    {/* Drag Handle */}
+                    <button
+                        {...attributes}
+                        {...listeners}
+                        className="text-text-secondary hover:text-text-primary cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors"
+                    >
+                        <GripVertical size={16} />
+                    </button>
 
-                {/* Section Label */}
-                <input
-                    value={section.label}
-                    onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
-                    className="bg-transparent text-text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent rounded px-2 py-0.5 w-full max-w-[200px] placeholder-text-secondary"
-                />
+                    {/* Section Label */}
+                    <input
+                        value={section.label}
+                        onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
+                        className="bg-transparent text-text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent rounded px-2 py-0.5 w-full max-w-[150px] placeholder-text-secondary"
+                    />
+                </div>
 
-                {/* Lyrics Settings Controls */}
+                {/* Lyrics Settings Controls - Enhanced */}
                 {songMode === 'lyrics' && (
-                    <div className="flex items-center gap-2 mx-2">
-                        <input
-                            type="number"
-                            value={section.lyricsSize || 14}
-                            onChange={(e) => updateSection(songId, section.id, { lyricsSize: parseInt(e.target.value) })}
-                            className="w-12 bg-bg-tertiary text-text-primary text-xs rounded px-1 text-center py-1 border border-border-main focus:border-accent outline-none"
-                            title="Font Size (px)"
-                        />
-                        <button
-                            onClick={() => {
-                                const alignments: ('left' | 'center' | 'right')[] = ['left', 'center', 'right'];
-                                const currentIndex = alignments.indexOf(section.lyricsAlign || 'left');
-                                const nextIndex = (currentIndex + 1) % alignments.length;
-                                updateSection(songId, section.id, { lyricsAlign: alignments[nextIndex] });
-                            }}
-                            className="p-1.5 text-text-secondary hover:text-accent hover:bg-bg-tertiary rounded-md transition-colors"
-                            title={`Alignment: ${section.lyricsAlign || 'left'}`}
-                        >
-                            {section.lyricsAlign === 'center' ? <AlignCenter size={16} /> :
-                                section.lyricsAlign === 'right' ? <AlignRight size={16} /> :
-                                    <AlignLeft size={16} />}
-                        </button>
-                        <input
-                            type="color"
-                            value={section.lyricsColor || '#ffffff'}
-                            onChange={(e) => updateSection(songId, section.id, { lyricsColor: e.target.value })}
-                            className="w-6 h-6 rounded cursor-pointer bg-transparent border-none p-0 overflow-hidden"
-                            title="Text Color"
-                        />
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="h-6 w-[1px] bg-border-main mx-1" />
+
+                        {/* Font Family */}
+                        <div className="flex items-center bg-bg-tertiary rounded-lg border border-border-main px-2 py-1 gap-2">
+                            <TypeIcon size={14} className="text-text-secondary" />
+                            <select
+                                value={section.lyricsFont || 'Inter'}
+                                onChange={(e) => updateSection(songId, section.id, { lyricsFont: e.target.value })}
+                                className="bg-transparent text-text-primary text-[10px] font-bold uppercase tracking-wider outline-none cursor-pointer"
+                            >
+                                <option value="Inter">Sans</option>
+                                <option value="Georgia, serif">Serif</option>
+                                <option value="monospace">Mono</option>
+                            </select>
+                        </div>
+
+                        {/* Font Size */}
+                        <div className="flex items-center bg-bg-tertiary rounded-lg border border-border-main px-2 py-1 gap-2">
+                            <span className="text-[10px] font-bold text-text-secondary uppercase">Px</span>
+                            <input
+                                type="number"
+                                value={section.lyricsSize || globalLyricsFontSize}
+                                onChange={(e) => updateSection(songId, section.id, { lyricsSize: parseInt(e.target.value) })}
+                                className="w-8 bg-transparent text-text-primary text-[10px] font-bold outline-none"
+                            />
+                        </div>
+
+                        {/* Alignment */}
+                        <div className="flex bg-bg-tertiary rounded-lg border border-border-main p-0.5">
+                            {(['left', 'center', 'right'] as const).map((align) => (
+                                <button
+                                    key={align}
+                                    onClick={() => updateSection(songId, section.id, { lyricsAlign: align })}
+                                    className={`p-1 rounded-md transition-all ${(section.lyricsAlign || globalLyricsAlignment) === align
+                                            ? 'bg-accent text-white'
+                                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'
+                                        }`}
+                                >
+                                    {align === 'left' && <AlignLeft size={14} />}
+                                    {align === 'center' && <AlignCenter size={14} />}
+                                    {align === 'right' && <AlignRight size={14} />}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Bold / Italic */}
+                        <div className="flex bg-bg-tertiary rounded-lg border border-border-main p-0.5">
+                            <button
+                                onClick={() => updateSection(songId, section.id, { lyricsBold: !section.lyricsBold })}
+                                className={`p-1 rounded-md transition-all ${section.lyricsBold ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'
+                                    }`}
+                            >
+                                <Bold size={14} />
+                            </button>
+                            <button
+                                onClick={() => updateSection(songId, section.id, { lyricsItalic: !section.lyricsItalic })}
+                                className={`p-1 rounded-md transition-all ${section.lyricsItalic ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'
+                                    }`}
+                            >
+                                <Italic size={14} />
+                            </button>
+                        </div>
+
+                        {/* Colors */}
+                        <div className="flex items-center gap-2 px-1">
+                            <div className="relative group/color" title="Text Color">
+                                <Palette size={14} className="text-text-secondary" />
+                                <input
+                                    type="color"
+                                    value={activeColor}
+                                    onChange={(e) => updateSection(songId, section.id, { lyricsColor: e.target.value })}
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                />
+                                <div className="w-4 h-1 mt-0.5 rounded-full" style={{ backgroundColor: activeColor }} />
+                            </div>
+
+                            <div className="relative group/highlight" title="Highlight Color">
+                                <Highlighter size={14} className="text-text-secondary" />
+                                <input
+                                    type="color"
+                                    value={section.lyricsBackground || '#ffff00'}
+                                    onChange={(e) => updateSection(songId, section.id, { lyricsBackground: e.target.value })}
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                />
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateSection(songId, section.id, { lyricsBackground: '' });
+                                    }}
+                                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full flex items-center justify-center text-[6px] text-white opacity-0 group-hover/highlight:opacity-100 transition-opacity"
+                                >
+                                    ×
+                                </button>
+                                <div className="w-4 h-1 mt-0.5 rounded-full" style={{ backgroundColor: section.lyricsBackground || 'transparent', border: !section.lyricsBackground ? '1px dashed currentColor' : 'none' }} />
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -111,12 +186,16 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                     <textarea
                         value={section.lyrics || ''}
                         onChange={(e) => updateSection(songId, section.id, { lyrics: e.target.value })}
-                        className="w-full h-auto min-h-[150px] bg-bg-tertiary/30 text-text-primary rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-accent resize-y whitespace-pre-wrap transition-colors font-medium border border-border-main"
+                        className="w-full h-auto min-h-[150px] bg-bg-tertiary/30 text-text-primary rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-accent resize-y whitespace-pre-wrap transition-all border border-border-main"
                         style={{
-                            fontSize: `${(section.lyricsSize || 14) * 2}px`,
-                            color: 'var(--text-primary)',
+                            fontSize: `${(section.lyricsSize || globalLyricsFontSize) * 2}px`,
+                            textAlign: section.lyricsAlign || globalLyricsAlignment,
+                            color: activeColor,
+                            backgroundColor: section.lyricsBackground || 'transparent',
+                            fontWeight: section.lyricsBold ? 'bold' : 'normal',
+                            fontStyle: section.lyricsItalic ? 'italic' : 'normal',
+                            fontFamily: section.lyricsFont || 'inherit',
                             lineHeight: '1.5',
-                            fontFamily: 'inherit'
                         }}
                         placeholder="Paste lyrics here..."
                     />

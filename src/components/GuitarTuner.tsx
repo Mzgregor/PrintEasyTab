@@ -37,111 +37,201 @@ export const GuitarTuner: React.FC = () => {
         setActiveString(null);
     };
 
+    const transients = useRef<{ pluck: AudioBuffer | null, hammer: AudioBuffer | null, breath: AudioBuffer | null }>({
+        pluck: null, hammer: null, breath: null
+    });
+
+    useEffect(() => {
+        // Pre-generate transient buffers for better performance and realism
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+        const generateBuffer = (length: number, type: 'noise' | 'percussive' | 'breath') => {
+            const buffer = ctx.createBuffer(1, ctx.sampleRate * length, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                if (type === 'noise') data[i] = (Math.random() * 2 - 1) * 0.5;
+                else if (type === 'percussive') data[i] = (Math.random() * 2 - 1) * Math.exp(-i * 0.01);
+                else if (type === 'breath') data[i] = (Math.random() * 2 - 1) * 0.2;
+            }
+            return buffer;
+        };
+
+        transients.current.pluck = generateBuffer(0.1, 'noise');
+        transients.current.hammer = generateBuffer(0.1, 'percussive');
+        transients.current.breath = generateBuffer(0.4, 'breath');
+
+        return () => {
+            if (ctx.state !== 'closed') ctx.close();
+        };
+    }, []);
+
     const createGuitarVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const createOsc = (f: number, type: OscillatorType, gainValue: number, decay: number) => {
+        const duration = 3.5;
+        // Steel-string acoustic: Rich overtones + percussive pluck
+        const createPart = (f: number, gainVal: number, decay: number, type: OscillatorType = 'sine') => {
             const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const filter = ctx.createBiquadFilter();
-
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(f * 3, now);
-            filter.frequency.exponentialRampToValueAtTime(f * 1.5, now + decay);
-
+            const g = ctx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(f, now);
-
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(gainValue, now + 0.01);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
-
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(gainVal, now + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.001, now + decay);
+            osc.connect(g);
+            g.connect(ctx.destination);
             osc.start(now);
             osc.stop(now + decay + 0.1);
             activeOscillators.current.push(osc);
-            activeNodes.current.push(gain, filter);
+            activeNodes.current.push(g);
         };
 
-        createOsc(freq, 'sine', 0.5, 3);
-        createOsc(freq * 2, 'triangle', 0.15, 2);
-        createOsc(freq * 3, 'sine', 0.05, 1.5);
+        createPart(freq, 0.45, duration);
+        createPart(freq * 2, 0.15, duration * 0.7);
+        createPart(freq * 3, 0.08, duration * 0.4);
+        createPart(freq * 4, 0.04, duration * 0.2, 'triangle'); // Brighter top
+
+        if (transients.current.pluck) {
+            const pluck = ctx.createBufferSource();
+            pluck.buffer = transients.current.pluck;
+            const pg = ctx.createGain();
+            pg.gain.setValueAtTime(0.2, now);
+            pg.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            pluck.connect(pg);
+            pg.connect(ctx.destination);
+            pluck.start(now);
+        }
     };
 
     const createPianoVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const createOsc = (f: number, detune: number, gainValue: number, decay: number) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+        const duration = 2.5;
+        // FM Synthesis for Upright Piano: Metallic strike + wooden resonance
+        // Carrier
+        const carrier = ctx.createOscillator();
+        carrier.type = 'sine';
+        carrier.frequency.setValueAtTime(freq, now);
 
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(f, now);
-            osc.detune.setValueAtTime(detune, now);
+        // Modulator
+        const modulator = ctx.createOscillator();
+        modulator.type = 'sine';
+        modulator.frequency.setValueAtTime(freq, now); // 1:1 ratio for piano-like bell/string tone
 
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(gainValue, now + 0.005);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
+        // Modulation Index (Depth)
+        const modGain = ctx.createGain();
+        modGain.gain.setValueAtTime(freq * 2, now); // Initial bite
+        modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
+        // Envelopes
+        const mainGain = ctx.createGain();
+        mainGain.gain.setValueAtTime(0, now);
+        mainGain.gain.linearRampToValueAtTime(0.5, now + 0.005);
+        mainGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-            osc.start(now);
-            osc.stop(now + decay + 0.1);
-            activeOscillators.current.push(osc);
-            activeNodes.current.push(gain);
-        };
+        // Woody resonance filter
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(freq * 6, now);
+        filter.frequency.exponentialRampToValueAtTime(freq * 1.5, now + duration);
 
-        createOsc(freq, 0, 0.6, 2.5);
-        createOsc(freq, 4, 0.2, 2);
-        createOsc(freq * 2, -2, 0.1, 1.5);
+        // Connections
+        modulator.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(filter);
+        filter.connect(mainGain);
+        mainGain.connect(ctx.destination);
+
+        carrier.start(now);
+        modulator.start(now);
+        carrier.stop(now + duration + 0.1);
+        modulator.stop(now + duration + 0.1);
+
+        // Hammer Transient (Simpler blend)
+        if (transients.current.hammer) {
+            const hammer = ctx.createBufferSource();
+            hammer.buffer = transients.current.hammer;
+            const hg = ctx.createGain();
+            hg.gain.setValueAtTime(0.3, now);
+            hg.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            hammer.connect(hg);
+            hg.connect(ctx.destination);
+            hammer.start(now);
+        }
+
+        activeOscillators.current.push(carrier, modulator);
+        activeNodes.current.push(modGain, mainGain, filter);
     };
 
     const createVoiceVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const duration = 2.5;
+        // High-Fidelity Female Singer: Better glottal pulse and 4 formants
+
+        // Glottal Pulse Source (Band-limited Sawtooth)
+        const source = ctx.createOscillator();
+        source.type = 'sawtooth';
+        source.frequency.setValueAtTime(freq, now);
+
         const vibrato = ctx.createOscillator();
-        const vibratoGain = ctx.createGain();
-
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, now);
-
-        vibrato.frequency.setValueAtTime(5.2, now);
-        vibratoGain.gain.setValueAtTime(freq * 0.006, now);
-        vibrato.connect(vibratoGain);
-        vibratoGain.connect(osc.frequency);
+        vibrato.frequency.setValueAtTime(5.8, now);
+        const vg = ctx.createGain();
+        vg.gain.setValueAtTime(freq * 0.015, now);
+        vibrato.connect(vg);
+        vg.connect(source.frequency);
         vibrato.start(now);
 
-        const f1 = ctx.createBiquadFilter();
-        f1.type = 'bandpass';
-        f1.frequency.setValueAtTime(700, now);
-        f1.Q.setValueAtTime(6, now);
+        // Female Formants (Ah-ish vowel)
+        // Values: F1: 800, F2: 2300, F3: 3200, F4: 3800
+        const createFormant = (f: number, q: number, gainVal: number) => {
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(f, now);
+            filter.Q.setValueAtTime(q, now);
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(gainVal, now);
+            filter.connect(g);
+            return { filter, g };
+        };
 
-        const f2 = ctx.createBiquadFilter();
-        f2.type = 'bandpass';
-        f2.frequency.setValueAtTime(1100, now);
-        f2.Q.setValueAtTime(6, now);
+        const f1 = createFormant(800, 10, 1.2);
+        const f2 = createFormant(2300, 12, 0.6);
+        const f3 = createFormant(3200, 15, 0.3);
+        const f4 = createFormant(3800, 15, 0.2);
 
-        const lp = ctx.createBiquadFilter();
-        lp.type = 'lowpass';
-        lp.frequency.setValueAtTime(3500, now);
+        // Master Volume (Boosted for better audibility)
+        const out = ctx.createGain();
+        out.gain.setValueAtTime(0, now);
+        out.gain.linearRampToValueAtTime(0.6, now + 0.15); // Significant boost
+        out.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+        source.connect(f1.filter);
+        source.connect(f2.filter);
+        source.connect(f3.filter);
+        source.connect(f4.filter);
+        f1.g.connect(out);
+        f2.g.connect(out);
+        f3.g.connect(out);
+        f4.g.connect(out);
+        out.connect(ctx.destination);
 
-        osc.connect(f1);
-        osc.connect(f2);
-        f1.connect(lp);
-        f2.connect(lp);
-        lp.connect(gain);
-        gain.connect(ctx.destination);
+        source.start(now);
+        source.stop(now + duration + 0.5);
+        vibrato.stop(now + duration + 0.5);
 
-        osc.start(now);
-        osc.stop(now + 3.1);
-        vibrato.stop(now + 3.1);
+        // Breathiness (High-passed air)
+        if (transients.current.breath) {
+            const breath = ctx.createBufferSource();
+            breath.buffer = transients.current.breath;
+            const bFilter = ctx.createBiquadFilter();
+            bFilter.type = 'highpass';
+            bFilter.frequency.setValueAtTime(2000, now);
+            const bg = ctx.createGain();
+            bg.gain.setValueAtTime(0.05, now);
+            bg.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            breath.connect(bFilter);
+            bFilter.connect(bg);
+            bg.connect(ctx.destination);
+            breath.start(now);
+        }
 
-        activeOscillators.current.push(osc, vibrato);
-        activeNodes.current.push(gain, f1, f2, lp, vibratoGain);
+        activeOscillators.current.push(source, vibrato);
+        activeNodes.current.push(f1.filter, f1.g, f2.filter, f2.g, f3.filter, f3.g, f4.filter, f4.g, out, vg);
     };
 
     const pluckString = (freq: number) => {
@@ -177,7 +267,7 @@ export const GuitarTuner: React.FC = () => {
 
         intervalRef.current = window.setInterval(() => {
             pluckString(freq);
-        }, 3200);
+        }, 3000); // Slightly faster interval for better feedback
     };
 
     useEffect(() => {

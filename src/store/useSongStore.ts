@@ -24,11 +24,17 @@ interface SongState {
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome' | 'tuner';
-    setViewMode: (mode: 'editor' | 'metronome' | 'tuner') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner' | 'help';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help') => void;
 
     theme: 'light' | 'dark' | 'midnight';
     setTheme: (theme: 'light' | 'dark' | 'midnight') => void;
+
+    // Global Lyrics Settings
+    globalLyricsFontSize: number;
+    setGlobalLyricsFontSize: (size: number) => void;
+    globalLyricsAlignment: 'left' | 'center' | 'right';
+    setGlobalLyricsAlignment: (align: 'left' | 'center' | 'right') => void;
 }
 
 const createMeasure = (): Measure => ({
@@ -44,8 +50,12 @@ const createSection = (type: SectionType = 'Verse', index: number): Section => (
     measures: [createMeasure(), createMeasure(), createMeasure(), createMeasure()], // Start with 4
     lyrics: '',
     lyricsSize: 14,
-    lyricsColor: '#000000',
-    lyricsAlign: 'left'
+    lyricsColor: '', // Empty means follow theme/default
+    lyricsAlign: 'left',
+    lyricsFont: 'Inter',
+    lyricsBold: false,
+    lyricsItalic: false,
+    lyricsBackground: '' // Empty means no highlight
 });
 
 const createSong = (): Song => ({
@@ -229,5 +239,10 @@ export const useSongStore = create<SongState>((set) => ({
     setViewMode: (viewMode) => set({ viewMode }),
 
     theme: 'dark',
-    setTheme: (theme) => set({ theme })
+    setTheme: (theme) => set({ theme }),
+
+    globalLyricsFontSize: 16,
+    setGlobalLyricsFontSize: (globalLyricsFontSize) => set({ globalLyricsFontSize }),
+    globalLyricsAlignment: 'left',
+    setGlobalLyricsAlignment: (globalLyricsAlignment) => set({ globalLyricsAlignment })
 }));
