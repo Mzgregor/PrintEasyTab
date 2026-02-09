@@ -152,129 +152,87 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                 </div>
             </aside>
 
-            {/* Main Header - Iconic Branding */}
-            <header className="h-80 flex items-center justify-between px-8 bg-bg-secondary border-b border-border-main relative z-[100] shadow-2xl">
-                <div className="grid grid-cols-3 items-center w-full">
-                    {/* Left: Menu & Logo */}
-                    <div className="flex justify-start items-center gap-6">
-                        {/* Burger Menu Button */}
-                        <button
-                            onClick={() => setIsMenuOpen(true)}
-                            className="btn-skeuo-dark p-3 rounded-2xl"
-                        >
-                            <Menu size={28} />
-                        </button>
+            {/* Main Header - Iconic Bold Edition */}
+            <header className="h-56 flex items-center justify-between px-12 bg-bg-secondary border-b border-border-main relative z-[100] shadow-2xl">
+                {/* Left: Menu & Logo */}
+                <div className="flex items-center gap-10 flex-1">
+                    <button
+                        onClick={() => setIsMenuOpen(true)}
+                        className="btn-skeuo-dark p-4 rounded-2xl hover:text-accent transition-colors"
+                    >
+                        <Menu size={36} />
+                    </button>
 
-                        <img
-                            src="/LOGO_1_OMT.png"
-                            alt="One More Tab Logo"
-                            className="h-72 w-auto object-contain drop-shadow-2xl translate-y-2"
-                        />
-                    </div>
+                    <img
+                        src="/LOGO_1_OMT.png"
+                        alt="One More Tab Logo"
+                        className="h-40 w-auto object-contain drop-shadow-2xl"
+                    />
+                </div>
 
-                    {/* Center: Iconic Mode Selectors */}
-                    <div className="flex justify-center">
-                        <div className="flex flex-col items-center">
-                            {/* Unified Pro Navigation Console */}
-                            <div className="nav-console animate-in fade-in slide-in-from-top-4 duration-700">
+                {/* Center: Compact Navigation Console */}
+                <div className="flex justify-center flex-1">
+                    <div className="nav-console animate-in fade-in slide-in-from-top-2 duration-500">
+                        <div className="nav-group">
+                            <button
+                                onClick={() => currentSong && (setMode(currentSong.id, 'chords'), setViewMode('editor'))}
+                                className={`nav-btn-pro btn-blue ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                title="Chords Mode"
+                            >
+                                <Guitar />
+                            </button>
+                            <button
+                                onClick={() => currentSong && (setMode(currentSong.id, 'lyrics'), setViewMode('editor'))}
+                                className={`nav-btn-pro btn-violet ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                title="Lyrics Mode"
+                            >
+                                <Mic />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('metronome')}
+                                className={`nav-btn-pro btn-pink ${viewMode === 'metronome' ? 'nav-btn-pro-active' : ''}`}
+                                title="Metronome"
+                            >
+                                <Music />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('tuner')}
+                                className={`nav-btn-pro btn-orange ${viewMode === 'tuner' ? 'nav-btn-pro-active' : ''}`}
+                                title="Tuner"
+                            >
+                                <Radio />
+                            </button>
+                        </div>
 
-                                <div className="nav-group py-4">
-                                    {/* Chords */}
-                                    <button
-                                        onClick={() => {
-                                            if (currentSong) {
-                                                setMode(currentSong.id, 'chords');
-                                                setViewMode('editor');
-                                            }
-                                        }}
-                                        className={`nav-btn-pro btn-blue ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
-                                        title="Chords Mode"
-                                    >
-                                        <Guitar size={44} />
-                                    </button>
-
-                                    {/* Lyrics */}
-                                    <button
-                                        onClick={() => {
-                                            if (currentSong) {
-                                                setMode(currentSong.id, 'lyrics');
-                                                setViewMode('editor');
-                                            }
-                                        }}
-                                        className={`nav-btn-pro btn-violet ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
-                                        title="Lyrics Mode"
-                                    >
-                                        <Mic size={44} />
-                                    </button>
-
-                                    {/* Metronome */}
-                                    <button
-                                        onClick={() => setViewMode('metronome')}
-                                        className={`nav-btn-pro btn-pink ${viewMode === 'metronome' ? 'nav-btn-pro-active' : ''}`}
-                                        title="Metronome"
-                                    >
-                                        <Music size={44} />
-                                    </button>
-
-                                    {/* Tuner */}
-                                    <button
-                                        onClick={() => setViewMode('tuner')}
-                                        className={`nav-btn-pro btn-orange ${viewMode === 'tuner' ? 'nav-btn-pro-active' : ''}`}
-                                        title="Tuner"
-                                    >
-                                        <Radio size={44} />
-                                    </button>
-                                </div>
-
-                                {/* Refined Mode Title Strip */}
-                                <div className="nav-mode-indicator">
-                                    <div className="nav-mode-indicator-panel">
-                                        <div className="nav-mode-title">
-                                            {viewMode === 'metronome' ? 'Metronome Mode' :
-                                                viewMode === 'tuner' ? 'Tuner Mode' :
-                                                    currentSong?.mode === 'lyrics' ? 'Lyrics Mode' :
-                                                        'Chords Mode'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="nav-mode-indicator">
+                            <span className="nav-mode-title">
+                                {viewMode === 'metronome' ? 'Metronome' :
+                                    viewMode === 'tuner' ? 'Tuner' :
+                                        currentSong?.mode === 'lyrics' ? 'Lyrics Mode' : 'Chords Mode'}
+                            </span>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right: Theme Controls & Burger Menu */}
-                    <div className="flex justify-end items-center gap-6">
-                        <div className="flex items-center gap-3">
-                            {/* Theme Dropdown */}
-                            <div className="relative group/theme">
-                                <button className="btn-skeuo-dark p-3 rounded-2xl">
-                                    <Palette size={28} />
-                                </button>
+                {/* Right: Theme Controls */}
+                <div className="flex justify-end items-center gap-4 flex-1">
+                    <div className="relative group/theme">
+                        <button className="btn-skeuo-dark p-2.5 rounded-xl hover:text-accent transition-colors">
+                            <Palette size={22} />
+                        </button>
 
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-bg-secondary border border-border-main rounded-2xl shadow-2xl opacity-0 invisible group-hover/theme:opacity-100 group-hover/theme:visible transition-all z-[102] overflow-hidden">
-                                    <div className="p-2 space-y-1">
-                                        <button
-                                            onClick={() => setTheme('light')}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${theme === 'light' ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
-                                        >
-                                            <Sun size={18} />
-                                            <span className="font-bold text-xs uppercase tracking-wider">Light Mode</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setTheme('dark')}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${theme === 'dark' ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
-                                        >
-                                            <Moon size={18} />
-                                            <span className="font-bold text-xs uppercase tracking-wider">Dark Mode</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setTheme('midnight')}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${theme === 'midnight' ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
-                                        >
-                                            <Ghost size={18} />
-                                            <span className="font-bold text-xs uppercase tracking-wider">Midnight</span>
-                                        </button>
-                                    </div>
-                                </div>
+                        <div className="absolute right-0 top-full mt-2 w-44 bg-bg-secondary border border-border-main rounded-xl shadow-2xl opacity-0 invisible group-hover/theme:opacity-100 group-hover/theme:visible transition-all z-[102] overflow-hidden">
+                            <div className="p-2 space-y-1">
+                                {(['light', 'dark', 'midnight'] as const).map((t) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => setTheme(t)}
+                                        className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${theme === t ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
+                                    >
+                                        {t === 'light' ? <Sun size={16} /> : t === 'dark' ? <Moon size={16} /> : <Ghost size={16} />}
+                                        <span className="font-bold text-[10px] uppercase tracking-wider">{t} Mode</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>

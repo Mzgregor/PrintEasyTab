@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSongStore } from '../store/useSongStore';
-import { Trash2, Plus, Minus } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 
 interface Props {
     songId: string;

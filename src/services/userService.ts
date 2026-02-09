@@ -8,7 +8,6 @@ import { generateActivationToken } from './emailService';
  */
 
 const USERS_STORAGE_KEY = 'printeasy_users';
-const CURRENT_USER_ID_KEY = 'printeasy_current_user_id';
 
 // Initialize with default admin user if no users exist
 function initializeStorage() {

@@ -281,21 +281,22 @@
   color: var(--text-secondary);
 }
 
-/* Unified Pro Navigation Console */
+/* Unified Pro Navigation Console - Slim Edition */
 .nav-console {
   display: flex;
   background: var(--nav-bg);
   border: 1px solid var(--nav-border);
-  border-radius: 2.5rem;
+  border-radius: 2rem;
   box-shadow: var(--shadow-skeuo);
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  min-width: 500px;
+  align-items: center;
+  gap: 0;
   position: relative;
   z-index: 10;
-  transition: background-color 0.4s ease, border-color 0.4s ease;
+  transition: all 0.4s ease;
+  min-width: 440px;
 }
 
 .nav-console::before {
@@ -312,18 +313,14 @@
 .nav-group {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  width: 100%;
-  padding: 0.5rem;
-  position: relative;
-  z-index: 1;
+  gap: 0.5rem;
+  padding: 0.25rem;
 }
 
 .nav-btn-pro {
   position: relative;
-  width: 6rem;
-  height: 6rem;
+  width: 6.5rem;
+  height: 6.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -340,35 +337,40 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+.nav-btn-pro svg {
+  width: 44px;
+  height: 44px;
+}
+
 /* Specific Multi-color Active States */
 .nav-btn-pro-active.btn-blue {
   background-color: #2563eb;
   background-image: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  box-shadow: 0 0 25px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .nav-btn-pro-active.btn-violet {
   background-color: #8b5cf6;
   background-image: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .nav-btn-pro-active.btn-pink {
   background-color: #ec4899;
   background-image: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
-  box-shadow: 0 0 25px rgba(236, 72, 153, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .nav-btn-pro-active.btn-orange {
   background-color: #f97316;
   background-image: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-  box-shadow: 0 0 25px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .nav-btn-pro-active {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.08) translateY(-4px);
+  transform: translateY(-2px);
 }
 
 .nav-btn-pro-active::after {
@@ -421,11 +423,15 @@
 
 .nav-mode-indicator {
   width: 100%;
-  padding: 0.5rem 0;
-  background: rgba(0, 0, 0, 0.05);
+  padding: 0.4rem 0.75rem;
+  border-left: none;
   border-top: 1px solid var(--nav-border);
-  border-bottom-left-radius: 2rem;
-  border-bottom-right-radius: 2rem;
+  background: rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
@@ -479,15 +485,12 @@
 }
 
 .nav-mode-title {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.5em;
+  letter-spacing: 0.15em;
   color: var(--text-primary);
-  opacity: 0.8;
-  font-size: 0.75rem;
-  margin-left: 0.5em;
-  /* Compensate for tracking */
+  text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4);
 }
 
 /* Browser-style Song Tabs */
@@ -820,4 +823,134 @@
   color: var(--text-secondary);
   letter-spacing: 0.1em;
   margin-top: 1px;
+}
+
+/* Pro Tuner UI Redesign */
+.tuner-selector {
+  display: flex;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--nav-border);
+  border-radius: 1.25rem;
+  padding: 0.35rem;
+  gap: 0.35rem;
+  box-shadow: var(--shadow-inner);
+  width: 100%;
+  max-width: 320px;
+}
+
+.tuner-btn-pro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.9rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tuner-btn-pro:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+.tuner-btn-pro.active {
+  background: var(--accent);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+  transform: translateY(-1px);
+}
+
+.tuner-btn-pro span {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tuner-note-btn {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--nav-border);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.tuner-note-btn::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.tuner-note-btn:hover:not(.active) {
+  transform: scale(1.05);
+  border-color: var(--accent-muted);
+  background: var(--bg-secondary);
+}
+
+.tuner-note-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.5);
+  transform: scale(1.1);
+}
+
+.tuner-note-btn .note-text {
+  font-size: 1.75rem;
+  font-weight: 900;
+  z-index: 1;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tuner-note-btn .note-sub {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.tuner-stop-btn {
+  width: 100%;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  font-weight: 950;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.tuner-stop-btn.active {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+}
+
+.tuner-stop-btn.disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--nav-border);
+  opacity: 0.4;
+  cursor: default;
 }
