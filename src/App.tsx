@@ -173,7 +173,7 @@ function App() {
                   )}
                 </div>
 
-                {activeSong && <SongBlock song={activeSong} index={songs.indexOf(activeSong)} />}
+                {activeSong && <SongBlock song={activeSong} />}
               </div>
             )}
           </div>

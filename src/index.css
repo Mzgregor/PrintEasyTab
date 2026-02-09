@@ -708,3 +708,116 @@
 .btn-structure[data-type="Outro"] .plus-icon {
   color: #8b5cf6;
 }
+
+/* Song Metadata UI Redesign */
+.metadata-area {
+  background: var(--bg-secondary);
+  border: 1px solid var(--nav-border);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-skeuo);
+  position: relative;
+  overflow: hidden;
+}
+
+.metadata-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.metadata-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+/* Capo Gear Style */
+.capo-gear-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.capo-gear-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--nav-border);
+  border-radius: 1rem;
+  padding: 0.5rem;
+  box-shadow: var(--shadow-inner);
+  gap: 0.5rem;
+}
+
+.capo-gear-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--nav-border);
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.capo-gear-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.capo-gear-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.95);
+}
+
+.capo-gear-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.capo-gear-display {
+  min-width: 3rem;
+  height: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.capo-gear-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+  text-shadow: 0 0 10px var(--accent-muted);
+}
+
+.capo-gear-text {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  margin-top: 1px;
+}

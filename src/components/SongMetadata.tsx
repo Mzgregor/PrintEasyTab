@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSongStore } from '../store/useSongStore';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 
 interface Props {
     songId: string;
@@ -8,76 +8,73 @@ interface Props {
 
 export const SongMetadata: React.FC<Props> = ({ songId }) => {
     const song = useSongStore(state => state.songs.find(s => s.id === songId));
-    const songs = useSongStore(state => state.songs);
-    const { setTitle, setArtist, setCapo, removeSong } = useSongStore();
+    const { setTitle, setArtist, setCapo } = useSongStore();
 
     if (!song) return null;
 
-    const songCount = songs.length;
+    const handleCapoChange = (delta: number) => {
+        const newVal = Math.min(Math.max((song.capo || 0) + delta, 0), 10);
+        setCapo(songId, newVal);
+    };
 
     return (
-        <div className="space-y-6 relative">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-text-primary tracking-tight">
-                    {song.title || <span className="text-text-secondary italic">New Song</span>}
-                </h2>
-                {songCount > 1 && (
-                    <button
-                        onClick={() => removeSong(songId)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-bg-tertiary hover:bg-red-500/20 text-text-secondary hover:text-red-500 transition-all"
-                        title="Remove Song"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                )}
-            </div>
-
-            {/* Inputs Row - Title, Artist, Capo */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                <div className="md:col-span-5 space-y-1.5">
-                    <label htmlFor={`title-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Title</label>
-                    <input
-                        id={`title-${songId}`}
-                        type="text"
-                        value={song.title}
-                        onChange={(e) => setTitle(songId, e.target.value)}
-                        className="ios-input w-full"
-                        placeholder="Song Title"
-                    />
-                </div>
-                <div className="md:col-span-5 space-y-1.5">
-                    <label htmlFor={`artist-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Artist</label>
-                    <input
-                        id={`artist-${songId}`}
-                        type="text"
-                        value={song.artist}
-                        onChange={(e) => setArtist(songId, e.target.value)}
-                        className="ios-input w-full"
-                        placeholder="Artist Name"
-                    />
-                </div>
-                <div className="md:col-span-2 space-y-1.5">
-                    <label htmlFor={`capo-${songId}`} className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide ml-1">Capo</label>
-                    <div className="relative">
+        <div className="metadata-area">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                {/* Title & Artist Card Style */}
+                <div className="md:col-span-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label htmlFor={`title-${songId}`} className="metadata-label">Titre de la chanson</label>
                         <input
-                            id={`capo-${songId}`}
-                            type="number"
-                            min="0"
-                            max="10"
-                            value={song.capo}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value) || 0;
-                                const clamped = Math.min(Math.max(val, 0), 10);
-                                setCapo(songId, clamped);
-                            }}
-                            className="ios-input w-full text-center font-mono"
-                            placeholder="0"
+                            id={`title-${songId}`}
+                            type="text"
+                            value={song.title}
+                            onChange={(e) => setTitle(songId, e.target.value)}
+                            className="ios-input w-full !text-lg !py-3"
+                            placeholder="Ex: Stairway to Heaven"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor={`artist-${songId}`} className="metadata-label">Artiste / Groupe</label>
+                        <input
+                            id={`artist-${songId}`}
+                            type="text"
+                            value={song.artist}
+                            onChange={(e) => setArtist(songId, e.target.value)}
+                            className="ios-input w-full !text-lg !py-3"
+                            placeholder="Ex: Led Zeppelin"
                         />
                     </div>
                 </div>
+
+                {/* Capo Gear Selector */}
+                <div className="md:col-span-2">
+                    <span className="metadata-label text-center">Capodastre</span>
+                    <div className="capo-gear-box mx-auto">
+                        <button
+                            onClick={() => handleCapoChange(-1)}
+                            disabled={song.capo <= 0}
+                            className="capo-gear-btn"
+                            title="Diminuer Capo"
+                        >
+                            <Minus size={16} strokeWidth={3} />
+                        </button>
+
+                        <div className="capo-gear-display">
+                            <span className="capo-gear-number">{song.capo}</span>
+                            <span className="capo-gear-text">Frette</span>
+                        </div>
+
+                        <button
+                            onClick={() => handleCapoChange(1)}
+                            disabled={song.capo >= 10}
+                            className="capo-gear-btn"
+                            title="Augmenter Capo"
+                        >
+                            <Plus size={16} strokeWidth={3} />
+                        </button>
+                    </div>
+                </div>
             </div>
-
-
         </div>
     );
 };
