@@ -160,14 +160,14 @@ export const Metronome: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-full bg-bg-primary text-text-primary p-8">
-            <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-10 shadow-2xl border border-border-main space-y-10">
+        <div className="flex flex-col items-center justify-center min-h-[600px] bg-bg-primary text-text-primary p-8">
+            <div className="w-full max-w-md skeuo-card p-10 space-y-10">
                 <div className="text-center space-y-2">
                     <h2 className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em]">Metronome</h2>
                     <div className="flex items-center justify-center gap-6">
                         <button
                             onClick={() => changeBpm(-1)}
-                            className="p-3 bg-bg-tertiary rounded-full hover:bg-bg-tertiary/80 active:scale-90 transition-all text-text-primary"
+                            className="btn-skeuo-dark p-3 rounded-full"
                         >
                             <Minus size={24} />
                         </button>
@@ -184,7 +184,7 @@ export const Metronome: React.FC = () => {
 
                         <button
                             onClick={() => changeBpm(1)}
-                            className="p-3 bg-bg-tertiary rounded-full hover:bg-bg-tertiary/80 active:scale-90 transition-all text-text-primary"
+                            className="btn-skeuo-dark p-3 rounded-full"
                         >
                             <Plus size={24} />
                         </button>
@@ -220,27 +220,27 @@ export const Metronome: React.FC = () => {
 
                     <button
                         onClick={handleStartStop}
-                        className={`w-24 h-24 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-xl
+                        className={`w-24 h-24 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-xl skeuo-btn
                             ${isPlaying
-                                ? 'bg-red-500 hover:bg-red-400 shadow-red-500/20'
-                                : 'bg-accent hover:opacity-90 shadow-accent/20'
+                                ? 'bg-red-600 hover:bg-red-500 shadow-red-500/30'
+                                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/30'
                             }`}
                     >
-                        {isPlaying ? <Square size={32} fill="white" /> : <Play size={32} fill="white" className="ml-1" />}
+                        {isPlaying ? <Square size={32} fill="white" stroke="none" /> : <Play size={32} fill="white" stroke="none" className="ml-1" />}
                     </button>
                 </div>
 
                 {/* Visual Pulse */}
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-4 skeuo-inset p-4">
                     {[0, 1, 2, 3].map((i) => (
                         <div
                             key={i}
-                            className={`w-4 h-4 rounded-full transition-all duration-75 
+                            className={`w-5 h-5 rounded-full transition-all duration-75 
                                 ${!isPlaying
-                                    ? 'bg-bg-tertiary'
+                                    ? 'bg-black/40'
                                     : currentBeat === i
-                                        ? i === 0 ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)] scale-125' : 'bg-accent shadow-[0_0_15px_var(--color-accent)] scale-110'
-                                        : 'bg-bg-tertiary'
+                                        ? i === 0 ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-125' : 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)] scale-110'
+                                        : 'bg-black/40'
                                 }`}
                         />
                     ))}

@@ -1,30 +1,56 @@
 import React, { useState } from 'react';
 import { useSongStore } from '../store/useSongStore';
-import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
+import { UserPlus, Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
+import { SuccessPopup } from './SuccessPopup';
+import { sendActivationEmail } from '../services/emailService';
 
-export const LoginPage: React.FC = () => {
+export const RegistrationPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [activationLink, setActivationLink] = useState('');
 
-    // Auth from store
-    const { setViewMode, login } = useSongStore();
+    const { setViewMode, register } = useSongStore();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
         setError('');
 
-        // Mock login delay for UX
+        // Validation
+        if (password !== confirmPassword) {
+            setError('Les mots de passe ne correspondent pas');
+            return;
+        }
+
+        if (password.length < 6) {
+            setError('Le mot de passe doit contenir au moins 6 caractères');
+            return;
+        }
+
+        setIsLoading(true);
+
+        // Mock registration delay for UX
         setTimeout(() => {
+            const result = register(email, password);
             setIsLoading(false);
-            const result = login(email, password);
+
             if (!result.success) {
-                setError(result.error || 'Erreur de connexion');
+                setError(result.error || 'Erreur lors de l\'inscription');
+            } else if (result.user) {
+                // Send activation email (mock in local dev)
+                const activationUrl = sendActivationEmail(result.user.email, result.user.activationToken || '');
+                setActivationLink(activationUrl);
+                setShowSuccessPopup(true);
             }
-            // If successful, the store will handle navigation
         }, 800);
+    };
+
+    const handleClosePopup = () => {
+        setShowSuccessPopup(false);
+        setViewMode('auth'); // Return to login page
     };
 
     return (
@@ -34,22 +60,22 @@ export const LoginPage: React.FC = () => {
                 <img
                     src="/LOGO_1_OMT.png"
                     alt="One More Tab Logo"
-                    className="w-full h-auto object-contain drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] max-h-[40vh]"
+                    className="w-full h-auto object-contain drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] max-h-[30vh]"
                 />
             </div>
 
-            {/* Login Form Card */}
+            {/* Registration Form Card */}
             <div className="w-full max-w-md space-y-8 bg-bg-secondary p-10 rounded-[2.5rem] border border-border-main shadow-2xl relative overflow-hidden group">
                 {/* Background Glow Effect */}
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl group-hover:bg-accent/20 transition-colors duration-1000" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/5 rounded-full blur-3xl group-hover:bg-accent/10 transition-colors duration-1000" />
 
                 <div className="text-center relative z-10">
-                    <h1 className="text-4xl font-black uppercase tracking-widest text-accent mb-2">Connexion</h1>
-                    <p className="text-text-secondary text-sm font-medium uppercase tracking-wider">Accédez à votre espace One More Tab</p>
+                    <h1 className="text-4xl font-black uppercase tracking-widest text-accent mb-2">Inscription</h1>
+                    <p className="text-text-secondary text-sm font-medium uppercase tracking-wider">Créez votre compte One More Tab</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6 relative z-10">
+                <form onSubmit={handleRegister} className="space-y-6 relative z-10">
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4 text-red-400 text-sm font-medium text-center">
                             {error}
@@ -81,20 +107,28 @@ export const LoginPage: React.FC = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Votre mot de passe"
+                                placeholder="Mot de passe (min. 6 caractères)"
                                 className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
                                 required
+                                minLength={6}
                             />
                         </div>
-                    </div>
 
-                    <div className="flex justify-center">
-                        <button
-                            type="button"
-                            className="text-[11px] font-black uppercase tracking-wider text-text-secondary hover:text-accent transition-colors"
-                        >
-                            J'ai oublié mon mot de passe !
-                        </button>
+                        {/* Confirm Password Input */}
+                        <div className="relative group/input">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within/input:text-accent transition-colors">
+                                <Lock size={20} />
+                            </div>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Confirmez le mot de passe"
+                                className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
+                                required
+                                minLength={6}
+                            />
+                        </div>
                     </div>
 
                     <button
@@ -106,8 +140,8 @@ export const LoginPage: React.FC = () => {
                             <Loader2 size={20} className="animate-spin" />
                         ) : (
                             <>
-                                <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
-                                <span>Se connecter</span>
+                                <UserPlus size={20} className="group-hover:scale-110 transition-transform" />
+                                <span>Créer mon compte</span>
                             </>
                         )}
                     </button>
@@ -123,10 +157,11 @@ export const LoginPage: React.FC = () => {
 
                     <button
                         type="button"
-                        onClick={() => setViewMode('register')}
+                        onClick={() => setViewMode('auth')}
                         className="w-full flex items-center justify-center gap-3 py-4 bg-transparent border-2 border-accent text-accent rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-accent hover:text-white active:scale-95 transition-all group"
                     >
-                        <span>S'inscrire</span>
+                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        <span>Retour à la connexion</span>
                     </button>
                 </form>
             </div>
@@ -135,6 +170,14 @@ export const LoginPage: React.FC = () => {
             <p className="mt-8 text-text-tertiary text-xs uppercase tracking-widest font-bold">
                 Besoin d'aide ? <button onClick={() => setViewMode('help')} className="text-accent hover:underline">Consultez la documentation</button>
             </p>
+
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <SuccessPopup
+                    activationLink={activationLink}
+                    onClose={handleClosePopup}
+                />
+            )}
         </div>
     );
 };

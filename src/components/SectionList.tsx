@@ -61,16 +61,19 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
             </DndContext>
 
             {/* Add Section Buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {(['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro', 'Solo'] as SectionType[]).map((type) => (
                     <button
                         key={type}
                         onClick={() => addSection(songId, type)}
-                        className="group relative overflow-hidden bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border-main rounded-lg p-3 transition-all active:scale-[0.98]"
+                        data-type={type}
+                        className="btn-structure group"
                     >
                         <div className="flex items-center justify-center gap-2 relative z-10">
-                            <Plus size={14} className="text-accent" />
-                            <span className="text-[12px] font-semibold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
+                            <div className="plus-icon transition-colors">
+                                <Plus size={16} strokeWidth={3} />
+                            </div>
+                            <span className="text-[13px] font-bold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
                                 {type}
                             </span>
                         </div>

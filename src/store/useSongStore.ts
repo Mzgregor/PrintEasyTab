@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import type { Song, Section, SectionType, Measure, ChordBlock } from '../types';
+import type { Song, Section, SectionType, Measure, ChordBlock, User, AuthResponse, UserRole } from '../types';
+import * as userService from '../services/userService';
 
 interface SongState {
     songs: Song[];
+    activeSongId: string | null;
     addSong: () => void;
     removeSong: (songId: string) => void;
+    setActiveSongId: (songId: string) => void;
 
     setTitle: (songId: string, title: string) => void;
     setArtist: (songId: string, artist: string) => void;
@@ -24,8 +27,8 @@ interface SongState {
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth';
-    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin') => void;
 
     theme: 'light' | 'dark' | 'midnight';
     setTheme: (theme: 'light' | 'dark' | 'midnight') => void;
@@ -38,8 +41,21 @@ interface SongState {
 
     // Auth state
     isAuthenticated: boolean;
-    login: (email: string) => void;
+    currentUser: User | null;
+    users: User[];
+
+    // Auth methods
+    login: (email: string, password: string) => AuthResponse;
+    register: (email: string, password: string) => AuthResponse;
     logout: () => void;
+
+    // User management methods
+    loadUsers: () => void;
+    createUserAsAdmin: (email: string, password: string, role: UserRole) => AuthResponse;
+    deleteUserById: (userId: number) => void;
+    updateUserRoleById: (userId: number, newRole: UserRole) => void;
+    changeUserPassword: (currentPassword: string, newPassword: string) => boolean;
+    activateAccount: (token: string) => AuthResponse;
 }
 
 const createMeasure = (): Measure => ({
@@ -72,22 +88,38 @@ const createSong = (): Song => ({
     sections: []
 });
 
-export const useSongStore = create<SongState>((set) => ({
-    songs: [createSong()], // Initial single song
+const initialSong = createSong();
+
+export const useSongStore = create<SongState>((set, get) => ({
+    songs: [initialSong],
+    activeSongId: initialSong.id,
 
     addSong: () => set((state) => {
         if (state.songs.length >= 4) return {};
+        const newSong = createSong();
         return {
-            songs: [...state.songs, createSong()]
+            songs: [...state.songs, newSong],
+            activeSongId: newSong.id
         };
     }),
 
     removeSong: (songId) => set((state) => {
-        if (state.songs.length <= 1) return {}; // Prevent removing the last song
+        if (state.songs.length <= 1) return {};
+        const newSongs = state.songs.filter(s => s.id !== songId);
+        let newActiveId = state.activeSongId;
+
+        // If we're removing the active song, switch to the first available one
+        if (state.activeSongId === songId) {
+            newActiveId = newSongs[0].id;
+        }
+
         return {
-            songs: state.songs.filter(s => s.id !== songId)
+            songs: newSongs,
+            activeSongId: newActiveId
         };
     }),
+
+    setActiveSongId: (activeSongId) => set({ activeSongId }),
 
     setTitle: (songId, title) => set((state) => ({
         songs: state.songs.map(s => s.id === songId ? { ...s, title } : s)
@@ -253,6 +285,78 @@ export const useSongStore = create<SongState>((set) => ({
 
     // Auth implementation
     isAuthenticated: false,
-    login: (email) => set({ isAuthenticated: true, viewMode: 'editor' }),
-    logout: () => set({ isAuthenticated: false, viewMode: 'auth' })
+    currentUser: null,
+    users: [],
+
+    login: (email, password) => {
+        const result = userService.authenticateUser(email, password);
+        if (result.success && result.user) {
+            set({
+                isAuthenticated: true,
+                currentUser: result.user,
+                viewMode: 'editor'
+            });
+        }
+        return result;
+    },
+
+    register: (email, password) => {
+        const result = userService.createUser({ email, password, role: 'user' });
+        // Don't auto-login - user must activate account first
+        return result;
+    },
+
+    logout: () => set({
+        isAuthenticated: false,
+        currentUser: null,
+        viewMode: 'auth'
+    }),
+
+    // User management
+    loadUsers: () => {
+        const allUsers = userService.getAllUsers();
+        set({ users: allUsers });
+    },
+
+    createUserAsAdmin: (email, password, role) => {
+        const result = userService.createUser({ email, password, role });
+        if (result.success) {
+            const allUsers = userService.getAllUsers();
+            set({ users: allUsers });
+        }
+        return result;
+    },
+
+    deleteUserById: (userId) => {
+        const success = userService.deleteUser(userId);
+        if (success) {
+            const allUsers = userService.getAllUsers();
+            set({ users: allUsers });
+        }
+    },
+
+    updateUserRoleById: (userId, newRole) => {
+        const success = userService.updateUserRole(userId, newRole);
+        if (success) {
+            const allUsers = userService.getAllUsers();
+            set({ users: allUsers });
+        }
+    },
+
+    changeUserPassword: (currentPassword, newPassword) => {
+        const state = get();
+        if (!state.currentUser) return false;
+
+        // Verify current password first
+        const authResult = userService.authenticateUser(state.currentUser.email, currentPassword);
+        if (!authResult.success) return false;
+
+        // Change password
+        return userService.changePassword(state.currentUser.id, newPassword);
+    },
+
+    activateAccount: (token) => {
+        const result = userService.activateUser(token);
+        return result;
+    },
 }));

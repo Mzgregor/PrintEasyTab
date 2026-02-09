@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSongStore } from './store/useSongStore';
 import { Layout } from './components/Layout';
 import { SongPDF } from './components/SongPDF';
 import { SongBlock } from './components/SongBlock';
 import { Metronome } from './components/Metronome';
-import { Download } from 'lucide-react';
+import { Download, X, Plus } from 'lucide-react';
 import { GuitarTuner } from './components/GuitarTuner';
 import { HelpPage } from './components/HelpPage';
 import { LoginPage } from './components/LoginPage';
+import { RegistrationPage } from './components/RegistrationPage';
+import { AdminPanel } from './components/AdminPanel';
+import { SettingsPage } from './components/SettingsPage';
+import { AccountActivationPage } from './components/AccountActivationPage';
+import { ConfirmationModal } from './components/ConfirmationModal';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -41,14 +46,44 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 function App() {
-  const songs = useSongStore((state) => state.songs);
-  const viewMode = useSongStore((state) => state.viewMode);
-  const isAuthenticated = useSongStore((state) => state.isAuthenticated);
+  const songs = useSongStore((state: any) => state.songs);
+  const activeSongId = useSongStore((state: any) => state.activeSongId);
+  const viewMode = useSongStore((state: any) => state.viewMode);
+  const isAuthenticated = useSongStore((state: any) => state.isAuthenticated);
+  const setViewMode = useSongStore((state: any) => state.setViewMode);
+
+  const addSong = useSongStore((state: any) => state.addSong);
+  const removeSong = useSongStore((state: any) => state.removeSong);
+  const setActiveSongId = useSongStore((state: any) => state.setActiveSongId);
+
+  const [songToDelete, setSongToDelete] = React.useState<string | null>(null);
+
+  const activeSong = songs.find((s: any) => s.id === activeSongId) || songs[0];
+
+  // Check for activation token in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activateToken = urlParams.get('activate');
+
+    if (activateToken) {
+      setViewMode('auth'); // This will trigger the activation page
+    }
+  }, [setViewMode]);
+
+  // Handle activation page
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('activate')) {
+    return (
+      <ErrorBoundary>
+        <AccountActivationPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
       <ErrorBoundary>
-        <LoginPage />
+        {viewMode === 'register' ? <RegistrationPage /> : <LoginPage />}
       </ErrorBoundary>
     );
   }
@@ -61,6 +96,22 @@ function App() {
     );
   }
 
+  if (viewMode === 'settings') {
+    return (
+      <ErrorBoundary>
+        <SettingsPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'admin') {
+    return (
+      <ErrorBoundary>
+        <AdminPanel />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <Layout
@@ -68,26 +119,62 @@ function App() {
           <PDFDownloadLink
             document={<SongPDF songs={songs} />}
             fileName="chord-sheet.pdf"
-            className="flex items-center gap-3 px-8 py-3 bg-accent text-white rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-accent-light transition-all active:scale-95 no-underline border border-white/10"
+            className="btn-glossy-blue px-8 py-3 text-xs uppercase tracking-[0.2em]"
           >
             {({ loading }) => (
               <>
                 <Download size={16} strokeWidth={3} />
-                <span>{loading ? 'Preparing...' : 'Download PDF'}</span>
+                <span>{loading ? 'Preparing...' : 'Export PDF'}</span>
               </>
             )}
           </PDFDownloadLink>
         }
         editor={
-          <div className="pb-10">
+          <div className="pb-10 max-w-[85%] mx-auto">
             {viewMode === 'metronome' ? (
               <Metronome />
             ) : viewMode === 'tuner' ? (
               <GuitarTuner />
             ) : (
-              songs.map((song, index) => (
-                <SongBlock key={song.id} song={song} index={index} />
-              ))
+              <div className="space-y-4">
+                {/* Browser-style Song Tabs - Relocated to Editor Area */}
+                <div className="song-tabs-container mb-2 bg-transparent">
+                  {songs.map((song: any, index: number) => (
+                    <div
+                      key={song.id}
+                      onClick={() => setActiveSongId(song.id)}
+                      className={`song-tab ${activeSongId === song.id ? 'song-tab-active' : ''}`}
+                    >
+                      <span className="song-tab-title">
+                        {song.title || `Song #${index + 1}`}
+                      </span>
+                      {songs.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSongToDelete(song.id);
+                          }}
+                          className="song-tab-close"
+                        >
+                          <X size={16} strokeWidth={2.5} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {songs.length < 4 && (
+                    <button
+                      onClick={addSong}
+                      className="add-tab-btn"
+                      title="Nouvel onglet"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  )}
+                </div>
+
+                {activeSong && <SongBlock song={activeSong} index={songs.indexOf(activeSong)} />}
+              </div>
             )}
           </div>
         }
@@ -103,6 +190,21 @@ function App() {
             </PDFViewer>
           </div>
         }
+      />
+
+      <ConfirmationModal
+        isOpen={!!songToDelete}
+        title="Supprimer la chanson ?"
+        message="Cette action est irréversible. Toutes les tablatures et paroles associées à cette chanson seront définitivement supprimées."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={() => {
+          if (songToDelete) {
+            removeSong(songToDelete);
+            setSongToDelete(null);
+          }
+        }}
+        onCancel={() => setSongToDelete(null)}
       />
     </ErrorBoundary>
   );

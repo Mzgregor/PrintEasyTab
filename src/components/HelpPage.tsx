@@ -25,7 +25,7 @@ export const HelpPage: React.FC = () => {
 
                 <button
                     onClick={() => setViewMode('editor')}
-                    className="flex items-center gap-3 px-10 py-4 bg-accent text-white rounded-full font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:bg-accent-light transition-all active:scale-95 group"
+                    className="btn-glossy-blue px-10 py-4 text-sm uppercase tracking-[0.2em] group"
                 >
                     <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                     <span>Retour à l'application</span>

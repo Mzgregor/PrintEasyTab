@@ -27,19 +27,30 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
 
     const { removeSection, duplicateSection, updateSection, addMeasure } = useSongStore();
     const { globalLyricsFontSize, globalLyricsAlignment, theme } = useSongStore();
-    const songMode = useSongStore(state => state.songs.find(s => s.id === songId)?.mode);
+    const songMode = useSongStore((state: any) => state.songs.find((s: any) => s.id === songId)?.mode);
 
     // Dynamic color fallback based on theme
     const defaultColor = theme === 'light' ? '#1f2937' : '#ffffff';
     const activeColor = section.lyricsColor || defaultColor;
 
+    const getSectionDotClass = (label: string) => {
+        const lowerLabel = label.toLowerCase();
+        if (lowerLabel.includes('intro')) return 'section-intro-dot';
+        if (lowerLabel.includes('verse') || lowerLabel.includes('couplet')) return 'section-verse-dot';
+        if (lowerLabel.includes('chorus') || lowerLabel.includes('refrain')) return 'section-chorus-dot';
+        if (lowerLabel.includes('bridge') || lowerLabel.includes('pont')) return 'section-bridge-dot';
+        if (lowerLabel.includes('solo')) return 'section-solo-dot';
+        if (lowerLabel.includes('outro') || lowerLabel.includes('fin')) return 'section-outro-dot';
+        return 'bg-zinc-500';
+    };
+
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className="rounded-xl overflow-hidden bg-bg-secondary border border-border-main shadow-sm group transition-all hover:border-accent/50"
+            className="skeuo-card overflow-hidden group transition-all"
         >
-            <div className="flex flex-wrap items-center p-3 bg-bg-tertiary/50 border-b border-border-main gap-3">
+            <div className="flex flex-wrap items-center p-3 bg-white/5 border-b border-white/5 gap-3">
                 <div className="flex items-center gap-3">
                     {/* Drag Handle */}
                     <button
@@ -50,11 +61,13 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                         <GripVertical size={16} />
                     </button>
 
+                    <div className={`section-dot ${getSectionDotClass(section.label)}`} />
+
                     {/* Section Label */}
                     <input
                         value={section.label}
                         onChange={(e) => updateSection(songId, section.id, { label: e.target.value })}
-                        className="bg-transparent text-text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent rounded px-2 py-0.5 w-full max-w-[150px] placeholder-text-secondary"
+                        className="bg-transparent text-text-primary font-bold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-accent/50 rounded px-2 py-0.5 w-full max-w-[150px] placeholder-text-secondary text-xs"
                     />
                 </div>
 
@@ -95,8 +108,8 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                                     key={align}
                                     onClick={() => updateSection(songId, section.id, { lyricsAlign: align })}
                                     className={`p-1 rounded-md transition-all ${(section.lyricsAlign || globalLyricsAlignment) === align
-                                            ? 'bg-accent text-white'
-                                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'
+                                        ? 'bg-accent text-white'
+                                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'
                                         }`}
                                 >
                                     {align === 'left' && <AlignLeft size={14} />}
@@ -166,14 +179,14 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => duplicateSection(songId, section.id)}
-                        className="p-1.5 text-text-secondary hover:text-accent hover:bg-bg-tertiary rounded-md transition-colors"
+                        className="btn-skeuo-dark p-2"
                         title="Duplicate"
                     >
                         <Copy size={16} />
                     </button>
                     <button
                         onClick={() => removeSection(songId, section.id)}
-                        className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-bg-tertiary rounded-md transition-colors"
+                        className="btn-skeuo-dark p-2 hover:text-red-500 hover:border-red-500/50"
                         title="Delete"
                     >
                         <Trash2 size={16} />
@@ -186,7 +199,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                     <textarea
                         value={section.lyrics || ''}
                         onChange={(e) => updateSection(songId, section.id, { lyrics: e.target.value })}
-                        className="w-full h-auto min-h-[150px] bg-bg-tertiary/30 text-text-primary rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-accent resize-y whitespace-pre-wrap transition-all border border-border-main"
+                        className="w-full h-auto min-h-[150px] skeuo-inset text-text-primary p-4 focus:outline-none focus:ring-1 focus:ring-accent/50 resize-y whitespace-pre-wrap transition-all shadow-inner"
                         style={{
                             fontSize: `${(section.lyricsSize || globalLyricsFontSize) * 2}px`,
                             textAlign: section.lyricsAlign || globalLyricsAlignment,

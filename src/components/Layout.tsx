@@ -4,7 +4,7 @@ import { useSongStore } from '../store/useSongStore';
 import {
     Menu, X, User, Settings, FileText, LogOut, HelpCircle,
     Type, AlignLeft, AlignCenter, AlignRight,
-    Sun, Moon, Ghost, Palette, Music, Radio, Guitar, Mic, Plus
+    Sun, Moon, Ghost, Palette, Music, Guitar, Mic, Radio
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -16,13 +16,14 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) => {
     const {
         theme, setTheme,
-        songs, setMode, addSong,
+        songs, activeSongId, setMode,
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
         setViewMode, viewMode,
-        logout
+        logout, currentUser
     } = useSongStore();
-    const currentSong = songs[0];
+
+    const currentSong = songs.find(s => s.id === activeSongId) || songs[0];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -50,7 +51,13 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     </div>
 
                     <nav className="space-y-2 flex-1 overflow-y-auto no-scrollbar">
-                        <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group">
+                        <button
+                            onClick={() => {
+                                setViewMode('settings');
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
+                        >
                             <User className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
                             <span className="font-bold text-sm tracking-wide">Mon Profil</span>
                         </button>
@@ -95,10 +102,30 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             </div>
                         </div>
 
-                        <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group">
+                        <button
+                            onClick={() => {
+                                setViewMode('editor');
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
+                        >
                             <FileText className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
                             <span className="font-bold text-sm tracking-wide">Mes Tabs/Lyrics</span>
                         </button>
+
+                        {/* Admin Panel - Only visible to admins */}
+                        {currentUser?.role === 'admin' && (
+                            <button
+                                onClick={() => {
+                                    setViewMode('admin');
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group bg-accent/5 border border-accent/20"
+                            >
+                                <Settings className="text-accent transition-colors" size={20} />
+                                <span className="font-bold text-sm tracking-wide text-accent">Panneau Admin</span>
+                            </button>
+                        )}
 
                         <button
                             onClick={() => {
@@ -133,7 +160,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                         {/* Burger Menu Button */}
                         <button
                             onClick={() => setIsMenuOpen(true)}
-                            className="p-3 bg-bg-tertiary text-text-secondary hover:bg-accent hover:text-white rounded-2xl border border-border-main transition-all shadow-lg active:scale-95"
+                            className="btn-skeuo-dark p-3 rounded-2xl"
                         >
                             <Menu size={28} />
                         </button>
@@ -146,90 +173,72 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     </div>
 
                     {/* Center: Iconic Mode Selectors */}
-                    <div className="flex justify-center items-center gap-6">
-                        {/* Chords */}
-                        <button
-                            onClick={() => {
-                                if (currentSong) {
-                                    setMode(currentSong.id, 'chords');
-                                    setViewMode('editor');
-                                }
-                            }}
-                            className={`blob-btn w-26 h-26 transition-all shadow-xl group relative overflow-hidden
-                                ${currentSong?.mode === 'chords' && viewMode === 'editor'
-                                    ? 'bg-accent text-white scale-110'
-                                    : 'bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-secondary hover:text-text-primary'
-                                }`}
-                            title="Chords Mode"
-                        >
-                            <Guitar size={32} className="relative z-10 transition-transform group-hover:rotate-12" />
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                    <div className="flex justify-center">
+                        <div className="flex flex-col items-center">
+                            {/* Unified Pro Navigation Console */}
+                            <div className="nav-console animate-in fade-in slide-in-from-top-4 duration-700">
 
-                        {/* Lyrics */}
-                        <button
-                            onClick={() => {
-                                if (currentSong) {
-                                    setMode(currentSong.id, 'lyrics');
-                                    setViewMode('editor');
-                                }
-                            }}
-                            className={`blob-btn w-26 h-26 transition-all shadow-xl group relative overflow-hidden
-                                ${currentSong?.mode === 'lyrics' && viewMode === 'editor'
-                                    ? 'bg-accent text-white scale-110'
-                                    : 'bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-secondary hover:text-text-primary'
-                                }`}
-                            title="Lyrics Mode"
-                        >
-                            <Mic size={32} className="relative z-10 transition-transform group-hover:-rotate-12" />
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                                <div className="nav-group py-4">
+                                    {/* Chords */}
+                                    <button
+                                        onClick={() => {
+                                            if (currentSong) {
+                                                setMode(currentSong.id, 'chords');
+                                                setViewMode('editor');
+                                            }
+                                        }}
+                                        className={`nav-btn-pro btn-blue ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                        title="Chords Mode"
+                                    >
+                                        <Guitar size={44} />
+                                    </button>
 
-                        {/* Metronome */}
-                        <button
-                            onClick={() => setViewMode('metronome')}
-                            className={`blob-btn w-26 h-26 transition-all shadow-xl group relative overflow-hidden
-                                ${viewMode === 'metronome'
-                                    ? 'bg-accent text-white scale-110'
-                                    : 'bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-secondary hover:text-text-primary'
-                                }`}
-                            title="Metronome"
-                        >
-                            <Music size={32} className="relative z-10 transition-transform group-hover:scale-110" />
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                                    {/* Lyrics */}
+                                    <button
+                                        onClick={() => {
+                                            if (currentSong) {
+                                                setMode(currentSong.id, 'lyrics');
+                                                setViewMode('editor');
+                                            }
+                                        }}
+                                        className={`nav-btn-pro btn-violet ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                        title="Lyrics Mode"
+                                    >
+                                        <Mic size={44} />
+                                    </button>
 
-                        {/* Tuner */}
-                        <button
-                            onClick={() => setViewMode('tuner')}
-                            className={`blob-btn w-26 h-26 transition-all shadow-xl group relative overflow-hidden
-                                ${viewMode === 'tuner'
-                                    ? 'bg-accent text-white scale-110'
-                                    : 'bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-secondary hover:text-text-primary'
-                                }`}
-                            title="Tuner"
-                        >
-                            <Radio size={32} className="relative z-10 transition-transform group-hover:rotate-12" />
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                                    {/* Metronome */}
+                                    <button
+                                        onClick={() => setViewMode('metronome')}
+                                        className={`nav-btn-pro btn-pink ${viewMode === 'metronome' ? 'nav-btn-pro-active' : ''}`}
+                                        title="Metronome"
+                                    >
+                                        <Music size={44} />
+                                    </button>
 
-                        {/* Add Song Blob */}
-                        <button
-                            onClick={addSong}
-                            disabled={songs.length >= 4}
-                            className={`blob-btn w-26 h-26 flex flex-col items-center justify-center transition-all shadow-xl group relative overflow-hidden
-                                ${songs.length >= 4
-                                    ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
-                                    : 'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-red-500/20'
-                                }`}
-                            title="Ajouter une chanson"
-                        >
-                            <Plus size={42} strokeWidth={3} className="relative z-10" />
-                            <span className="text-[14px] font-black mt-0.5 relative z-10">
-                                {songs.length}/4
-                            </span>
-                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                                    {/* Tuner */}
+                                    <button
+                                        onClick={() => setViewMode('tuner')}
+                                        className={`nav-btn-pro btn-orange ${viewMode === 'tuner' ? 'nav-btn-pro-active' : ''}`}
+                                        title="Tuner"
+                                    >
+                                        <Radio size={44} />
+                                    </button>
+                                </div>
+
+                                {/* Refined Mode Title Strip */}
+                                <div className="nav-mode-indicator">
+                                    <div className="nav-mode-indicator-panel">
+                                        <div className="nav-mode-title">
+                                            {viewMode === 'metronome' ? 'Metronome Mode' :
+                                                viewMode === 'tuner' ? 'Tuner Mode' :
+                                                    currentSong?.mode === 'lyrics' ? 'Lyrics Mode' :
+                                                        'Chords Mode'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right: Theme Controls & Burger Menu */}
@@ -237,7 +246,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                         <div className="flex items-center gap-3">
                             {/* Theme Dropdown */}
                             <div className="relative group/theme">
-                                <button className="p-3 bg-bg-tertiary text-text-secondary hover:bg-accent hover:text-white rounded-2xl border border-border-main transition-all shadow-lg active:scale-95">
+                                <button className="btn-skeuo-dark p-3 rounded-2xl">
                                     <Palette size={28} />
                                 </button>
 
@@ -277,7 +286,9 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     {/* Editor Panel - Sidebar Style */}
                     <Panel defaultSize={70} minSize={20} className="flex flex-col border-r border-border-main bg-bg-primary">
                         <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-8 w-full">
-                            {editor}
+                            <div className="skeuo-inset min-h-full p-6">
+                                {editor}
+                            </div>
                         </div>
                     </Panel>
 
@@ -288,17 +299,13 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     {/* Preview Panel - Main Content Style */}
                     <Panel defaultSize={30} minSize={20} className="flex flex-col relative bg-bg-secondary">
                         {/* Dedicated Options Toolbar */}
-                        <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px]">
+                        <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
                             <div className="flex-1">
                                 <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">Live Preview</h2>
                             </div>
 
                             <div className="flex-1 flex justify-center">
-                                {pdfAction && (
-                                    <div className="bg-accent/10 p-0.5 rounded-full border border-accent/20">
-                                        {pdfAction}
-                                    </div>
-                                )}
+                                {pdfAction}
                             </div>
 
                             <div className="flex-1" />

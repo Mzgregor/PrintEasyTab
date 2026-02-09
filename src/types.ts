@@ -35,3 +35,29 @@ export type Song = {
     capo: number; // 0-10, 0 = no capo
     sections: Section[];
 };
+
+// User Management Types
+export type UserRole = 'user' | 'admin';
+
+export interface User {
+    id: number;
+    email: string;
+    role: UserRole;
+    createdAt: string;
+    lastLogin: string | null;
+    isActive: boolean;
+    activationToken?: string;
+}
+
+export interface AuthResponse {
+    success: boolean;
+    user?: User;
+    error?: string;
+}
+
+export interface CreateUserData {
+    email: string;
+    password: string;
+    role: UserRole;
+}
+
