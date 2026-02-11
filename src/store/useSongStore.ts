@@ -28,8 +28,8 @@ interface SongState {
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library';
-    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library' | 'configuration';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library' | 'configuration') => void;
 
     theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio';
     setTheme: (theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio') => void;
@@ -324,7 +324,18 @@ export const useSongStore = create<SongState>((set, get) => ({
     setViewMode: (viewMode) => set({ viewMode }),
 
     theme: 'dark',
-    setTheme: (theme) => set({ theme }),
+    setTheme: (theme) => {
+        const state = get();
+        if (state.currentUser) {
+            userService.updateUser(state.currentUser.id, { theme });
+            set({
+                theme,
+                currentUser: { ...state.currentUser, theme }
+            });
+        } else {
+            set({ theme });
+        }
+    },
 
     globalLyricsFontSize: 16,
     setGlobalLyricsFontSize: (globalLyricsFontSize) => set({ globalLyricsFontSize }),
@@ -334,8 +345,18 @@ export const useSongStore = create<SongState>((set, get) => ({
     // Language implementation
     language: (localStorage.getItem('printeasy_lang') as 'fr' | 'en') || 'fr',
     setLanguage: (language) => {
+        const state = get();
         localStorage.setItem('printeasy_lang', language);
-        set({ language });
+
+        if (state.currentUser) {
+            userService.updateUser(state.currentUser.id, { language });
+            set({
+                language,
+                currentUser: { ...state.currentUser, language }
+            });
+        } else {
+            set({ language });
+        }
     },
 
     t: (key: string) => {
@@ -414,8 +435,15 @@ export const useSongStore = create<SongState>((set, get) => ({
                 isAuthenticated: true,
                 currentUser: result.user,
                 viewMode: 'editor',
-                librarySongs: loadLibraryFromStorage(result.user.id)
+                librarySongs: loadLibraryFromStorage(result.user.id),
+                language: result.user.language || get().language,
+                theme: result.user.theme || get().theme
             });
+
+            // Ensure localStorage is updated for non-logged in state fallback
+            if (result.user.language) {
+                localStorage.setItem('printeasy_lang', result.user.language);
+            }
         }
         return result;
     },

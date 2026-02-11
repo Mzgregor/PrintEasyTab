@@ -1,34 +1,37 @@
+import { Languages, Check } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
 
 export const LanguageSwitcher: React.FC = () => {
     const { language, setLanguage } = useSongStore();
 
     const languages = [
-        { id: 'fr', label: 'FR' },
-        { id: 'en', label: 'EN' }
+        { id: 'fr', label: 'Français' },
+        { id: 'en', label: 'English' }
     ] as const;
 
     return (
-        <div className="flex items-center gap-1 bg-bg-tertiary/80 backdrop-blur-md rounded-full p-1 border border-border-main shadow-inner">
-            {languages.map(({ id, label }) => (
-                <button
-                    key={id}
-                    onClick={() => setLanguage(id)}
-                    className={`
-                        relative flex items-center justify-center w-10 h-8 rounded-full text-[11px] font-black tracking-tighter transition-all duration-300 ease-out isolate
-                        ${language === id
-                            ? 'bg-accent text-white shadow-lg shadow-accent/20 scale-100 z-10'
-                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary/50 scale-95 hover:scale-100'
-                        }
-                    `}
-                    title={id === 'fr' ? 'Français' : 'English'}
-                >
-                    <span className="uppercase">{label}</span>
-                    {language === id && (
-                        <span className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-20 pointer-events-none -z-10" />
-                    )}
-                </button>
-            ))}
+        <div className="relative group/lang">
+            <button
+                className="btn-skeuo-dark p-0 rounded-2xl hover:text-accent transition-all duration-300 h-16 w-16 flex items-center justify-center border-2 border-border-main shadow-xl hover:scale-105 active:scale-95"
+                title="Change Language"
+            >
+                <Languages size={28} />
+            </button>
+
+            <div className="absolute right-0 top-full mt-4 w-48 bg-bg-secondary border-2 border-border-main rounded-2xl shadow-2xl opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all z-[102] overflow-hidden backdrop-blur-xl">
+                <div className="p-3 space-y-2">
+                    {languages.map(({ id, label }) => (
+                        <button
+                            key={id}
+                            onClick={() => setLanguage(id)}
+                            className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-all ${language === id ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
+                        >
+                            <span className="font-bold text-[10px] uppercase tracking-wider">{label}</span>
+                            {language === id && <Check size={14} />}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

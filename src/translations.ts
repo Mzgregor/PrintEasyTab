@@ -11,6 +11,7 @@ export const translations: Record<string, Record<string, string>> = {
         'nav.admin': 'Panneau Admin',
         'nav.logout': 'Se déconnecter',
         'nav.help': 'Aide',
+        'nav.configuration': 'Configuration',
 
         // Song Metadata
         'metadata.title': 'Titre',
@@ -191,6 +192,12 @@ export const translations: Record<string, Record<string, string>> = {
         'admin.confirm_delete': 'Êtes-vous sûr de vouloir supprimer cet utilisateur ?',
         'admin.never': 'Jamais',
 
+        // Configuration
+        'configuration.title': 'Paramètres du Système',
+        'configuration.subtitle': 'Personnalisez votre expérience',
+        'configuration.language_section': 'Langue de l\'interface',
+        'configuration.theme_section': 'Thème visuel',
+
         // Theme
         'theme.light': 'Clair',
         'theme.dark': 'Sombre',
@@ -213,6 +220,7 @@ export const translations: Record<string, Record<string, string>> = {
         'nav.admin': 'Admin Panel',
         'nav.logout': 'Log Out',
         'nav.help': 'Help',
+        'nav.configuration': 'Configuration',
 
         // Song Metadata
         'metadata.title': 'Title',
@@ -391,6 +399,12 @@ export const translations: Record<string, Record<string, string>> = {
         'admin.stats.standard': 'Standard users',
         'admin.confirm_delete': 'Are you sure you want to delete this user?',
         'admin.never': 'Never',
+
+        // Configuration
+        'configuration.title': 'System Settings',
+        'configuration.subtitle': 'Customize your experience',
+        'configuration.language_section': 'Interface Language',
+        'configuration.theme_section': 'Visual Theme',
 
         // Theme
         'theme.light': 'Light',

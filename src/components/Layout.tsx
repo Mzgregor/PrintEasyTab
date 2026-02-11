@@ -4,9 +4,12 @@ import { useSongStore } from '../store/useSongStore';
 import {
     Menu, X, User, Settings, FileText, LogOut, HelpCircle,
     Type, AlignLeft, AlignCenter, AlignRight,
-    Sun, Moon, Ghost, Palette, Music, Guitar, Mic, Radio, Library, Crown
+    Music, Guitar, Mic, Radio, Library
 } from 'lucide-react';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import { ConfigurationView } from './ConfigurationView';
+import { AdminPanel } from './AdminPanel';
+import { SettingsPage } from './SettingsPage';
+import { HelpPage } from './HelpPage';
 
 interface LayoutProps {
     editor: React.ReactNode;
@@ -16,7 +19,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) => {
     const {
-        theme, setTheme,
+        theme,
         songs, activeSongId, setMode,
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
@@ -166,142 +169,134 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
             {/* Main Header - Iconic Bold Edition */}
             <header className="h-56 flex items-center justify-between px-12 bg-bg-secondary border-b border-border-main relative z-[100] shadow-2xl">
-                {/* Left: Menu & Logo */}
-                <div className="flex items-center gap-10 flex-1">
-                    <button
-                        onClick={() => setIsMenuOpen(true)}
-                        className="btn-skeuo-dark p-4 rounded-2xl hover:text-accent transition-colors"
-                    >
-                        <Menu size={36} />
-                    </button>
-
+                {/* Left: Logo */}
+                <div className="flex justify-start items-center flex-1">
                     <img
                         src="/LOGO_1_OMT.png"
                         alt="One More Tab Logo"
-                        className="h-40 w-auto object-contain drop-shadow-2xl"
+                        className="h-44 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                     />
                 </div>
 
                 {/* Center: Compact Navigation Console */}
                 <div className="flex justify-center flex-1">
-                    <div className="nav-console animate-in fade-in slide-in-from-top-2 duration-500">
-                        <div className="nav-group">
+                    <div className="nav-console animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className="nav-group p-1.5 bg-bg-tertiary/60 backdrop-blur-xl border-2 border-border-main rounded-[2.5rem] shadow-2xl">
                             <button
                                 onClick={() => currentSong && (setMode(currentSong.id, 'chords'), setViewMode('editor'))}
-                                className={`nav-btn-pro btn-blue ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                className={`nav-btn-pro btn-blue !h-16 !w-16 ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
                                 title="Chords Mode"
                             >
-                                <Guitar />
+                                <Guitar size={28} />
                             </button>
                             <button
                                 onClick={() => currentSong && (setMode(currentSong.id, 'lyrics'), setViewMode('editor'))}
-                                className={`nav-btn-pro btn-violet ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                className={`nav-btn-pro btn-violet !h-16 !w-16 ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
                                 title="Lyrics Mode"
                             >
-                                <Mic />
+                                <Mic size={28} />
                             </button>
                             <button
                                 onClick={() => setViewMode('metronome')}
-                                className={`nav-btn-pro btn-pink ${viewMode === 'metronome' ? 'nav-btn-pro-active' : ''}`}
+                                className={`nav-btn-pro btn-pink !h-16 !w-16 ${viewMode === 'metronome' ? 'nav-btn-pro-active' : ''}`}
                                 title="Metronome"
                             >
-                                <Music />
+                                <Music size={28} />
                             </button>
                             <button
                                 onClick={() => setViewMode('tuner')}
-                                className={`nav-btn-pro btn-orange ${viewMode === 'tuner' ? 'nav-btn-pro-active' : ''}`}
+                                className={`nav-btn-pro btn-orange !h-16 !w-16 ${viewMode === 'tuner' ? 'nav-btn-pro-active' : ''}`}
                                 title="Tuner"
                             >
-                                <Radio />
+                                <Radio size={28} />
                             </button>
                             <button
                                 onClick={() => setViewMode('library')}
-                                className={`nav-btn-pro ${viewMode === 'library' ? 'nav-btn-pro-active !bg-emerald-500 !bg-gradient-to-br from-emerald-400 to-emerald-600' : 'btn-orange'}`}
-                                style={{ boxShadow: viewMode === 'library' ? '0 0 25px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)' : '' }}
+                                className={`nav-btn-pro !h-16 !w-16 ${viewMode === 'library' ? 'nav-btn-pro-active !bg-emerald-500 !bg-gradient-to-br from-emerald-400 to-emerald-600' : 'btn-orange'}`}
+                                style={{ boxShadow: viewMode === 'library' ? '0 0 35px rgba(16, 185, 129, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3)' : '' }}
                                 title="Library"
                             >
-                                <Library />
+                                <Library size={28} />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('configuration')}
+                                className={`nav-btn-pro btn-blue !h-16 !w-16 ${viewMode === 'configuration' ? 'nav-btn-pro-active' : ''}`}
+                                title="Configuration"
+                            >
+                                <Settings size={28} />
                             </button>
                         </div>
 
-                        <div className="nav-mode-indicator">
-                            <span className="nav-mode-title">
+                        <div className="nav-mode-indicator mt-4 bg-bg-tertiary/60 backdrop-blur-md px-6 py-1.5 rounded-full border border-border-main shadow-lg">
+                            <span className="nav-mode-title text-xs font-black tracking-[0.3em] uppercase opacity-80">
                                 {viewMode === 'metronome' ? t('nav.metronome') :
                                     viewMode === 'tuner' ? t('nav.tuner') :
                                         viewMode === 'library' ? t('nav.library') :
-                                            currentSong?.mode === 'lyrics' ? t('nav.lyrics') : t('nav.chords')}
+                                            viewMode === 'configuration' ? t('nav.configuration') :
+                                                currentSong?.mode === 'lyrics' ? t('nav.lyrics') : t('nav.chords')}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Right: Theme Controls */}
-                <div className="flex justify-end items-center gap-4 flex-1">
-                    <LanguageSwitcher />
-
-                    <div className="relative group/theme">
-                        <button className="btn-skeuo-dark p-2.5 rounded-xl hover:text-accent transition-colors">
-                            <Palette size={22} />
-                        </button>
-
-                        <div className="absolute right-0 top-full mt-2 w-44 bg-bg-secondary border border-border-main rounded-xl shadow-2xl opacity-0 invisible group-hover/theme:opacity-100 group-hover/theme:visible transition-all z-[102] overflow-hidden">
-                            <div className="p-2 space-y-1">
-                                {(['light', 'dark', 'midnight', 'one-more-theme-studio'] as const).map((tValue) => (
-                                    <button
-                                        key={tValue}
-                                        onClick={() => setTheme(tValue)}
-                                        className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${theme === tValue ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
-                                    >
-                                        {tValue === 'light' ? <Sun size={16} /> :
-                                            tValue === 'dark' ? <Moon size={16} /> :
-                                                tValue === 'midnight' ? <Ghost size={16} /> :
-                                                    <Crown size={16} />}
-                                        <span className="font-bold text-[10px] uppercase tracking-wider">
-                                            {tValue === 'one-more-theme-studio' ? 'ONE MORE' : t(`theme.${tValue}`)} Mode
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                {/* Right: Burger Menu Call to Action */}
+                <div className="flex justify-end items-center flex-1">
+                    <button
+                        onClick={() => setIsMenuOpen(true)}
+                        className="btn-skeuo-dark p-0 rounded-2xl hover:text-accent transition-all duration-300 text-text-primary h-20 w-20 flex items-center justify-center border-2 border-border-main shadow-2xl hover:scale-110 active:scale-90 group"
+                        title="Menu"
+                    >
+                        <Menu size={40} className="group-hover:rotate-12 transition-transform" />
+                    </button>
                 </div>
             </header>
 
             <div className="flex-1 min-h-0">
                 <PanelGroup orientation="horizontal">
                     {/* Editor Panel - Sidebar Style */}
-                    <Panel defaultSize={70} minSize={20} className="flex flex-col border-r border-border-main bg-bg-primary">
+                    <Panel defaultSize={(viewMode === 'configuration' || viewMode === 'library') ? 100 : 70} minSize={(viewMode === 'configuration' || viewMode === 'library') ? 100 : 20} className="flex flex-col border-r border-border-main bg-bg-primary">
                         <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-8 w-full">
-                            <div className="skeuo-inset min-h-full p-6">
-                                {editor}
-                            </div>
+                            {viewMode === 'configuration' ? (
+                                <ConfigurationView />
+                            ) : (
+                                <div className="skeuo-inset min-h-full p-6">
+                                    {editor}
+                                </div>
+                            )}
                         </div>
                     </Panel>
 
-                    <PanelResizeHandle className="w-1 bg-bg-secondary hover:bg-accent transition-colors flex items-center justify-center cursor-col-resize group z-50">
-                        <div className="w-0.5 h-8 bg-border-main group-hover:bg-white rounded-full transition-colors" />
-                    </PanelResizeHandle>
+                    {(viewMode !== 'configuration' && viewMode !== 'library') && (
+                        <>
+                            <PanelResizeHandle className="w-1 bg-bg-secondary hover:bg-accent transition-colors flex items-center justify-center cursor-col-resize group z-50">
+                                <div className="w-0.5 h-8 bg-border-main group-hover:bg-white rounded-full transition-colors" />
+                            </PanelResizeHandle>
 
-                    {/* Preview Panel - Main Content Style */}
-                    <Panel defaultSize={30} minSize={20} className="flex flex-col relative bg-bg-secondary">
-                        {/* Dedicated Options Toolbar */}
-                        <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
-                            <div className="flex-1">
-                                <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">{t('editor.live_preview')}</h2>
-                            </div>
+                            {/* Preview Panel - Main Content Style */}
+                            <Panel defaultSize={30} minSize={20} className="flex flex-col relative bg-bg-secondary">
+                                {/* Dedicated Options Toolbar */}
+                                <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
+                                    <div className="flex-1">
+                                        <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">{t('editor.live_preview')}</h2>
+                                    </div>
 
-                            <div className="flex-1 flex justify-center">
-                                {pdfAction}
-                            </div>
+                                    <div className="flex-1 flex justify-center">
+                                        {pdfAction}
+                                    </div>
 
-                            <div className="flex-1" />
-                        </header>
+                                    <div className="flex-1" />
+                                </header>
 
-                        {/* Center the PDF Preivew */}
-                        <div className="flex-1 overflow-hidden p-6 flex items-center justify-center bg-bg-primary w-full">
-                            {preview}
-                        </div>
-                    </Panel>
+                                {/* Center the Content based on View Mode */}
+                                <div className="flex-1 overflow-hidden p-6 flex items-center justify-center bg-bg-primary w-full">
+                                    {viewMode === 'admin' ? <AdminPanel /> :
+                                        viewMode === 'settings' ? <SettingsPage /> :
+                                            viewMode === 'help' ? <HelpPage /> :
+                                                preview}
+                                </div>
+                            </Panel>
+                        </>
+                    )}
                 </PanelGroup>
             </div>
         </div>

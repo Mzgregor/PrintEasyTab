@@ -51,6 +51,8 @@ export interface User {
     lastLogin: string | null;
     isActive: boolean;
     activationToken?: string;
+    language?: 'fr' | 'en';
+    theme?: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio';
 }
 
 export interface AuthResponse {

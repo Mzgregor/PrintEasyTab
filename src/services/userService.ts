@@ -98,7 +98,9 @@ export function getUserByEmail(email: string): User | null {
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: user.isActive ?? true,
-            activationToken: user.activationToken
+            activationToken: user.activationToken,
+            language: user.language,
+            theme: user.theme
         };
     } catch (error) {
         console.error('Error getting user by email:', error);
@@ -120,7 +122,9 @@ export function getUserById(id: number): User | null {
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: user.isActive ?? true,
-            activationToken: user.activationToken
+            activationToken: user.activationToken,
+            language: user.language,
+            theme: user.theme
         };
     } catch (error) {
         console.error('Error getting user by ID:', error);
@@ -186,7 +190,9 @@ export function authenticateUser(email: string, password: string): AuthResponse 
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: user.isActive,
-            activationToken: user.activationToken
+            activationToken: user.activationToken,
+            language: user.language,
+            theme: user.theme
         };
 
         return {
@@ -236,7 +242,9 @@ export function createUser(data: CreateUserData): AuthResponse {
             createdAt: new Date().toISOString(),
             lastLogin: null,
             isActive: false,  // New users start inactive
-            activationToken: activationToken
+            activationToken: activationToken,
+            language: undefined as 'fr' | 'en' | undefined,
+            theme: undefined as 'light' | 'dark' | 'midnight' | 'one-more-theme-studio' | undefined
         };
 
         users.push(newUser);
@@ -249,7 +257,9 @@ export function createUser(data: CreateUserData): AuthResponse {
             createdAt: newUser.createdAt,
             lastLogin: newUser.lastLogin,
             isActive: newUser.isActive,
-            activationToken: newUser.activationToken
+            activationToken: newUser.activationToken,
+            language: newUser.language,
+            theme: newUser.theme
         };
 
         return {
@@ -277,7 +287,9 @@ export function getAllUsers(): User[] {
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: user.isActive ?? true,
-            activationToken: user.activationToken
+            activationToken: user.activationToken,
+            language: user.language,
+            theme: user.theme
         }));
     } catch (error) {
         console.error('Error getting all users:', error);
@@ -373,7 +385,9 @@ export function getUserByActivationToken(token: string): User | null {
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: user.isActive,
-            activationToken: user.activationToken
+            activationToken: user.activationToken,
+            language: user.language,
+            theme: user.theme
         };
     } catch (error) {
         console.error('Error getting user by activation token:', error);
@@ -416,7 +430,9 @@ export function activateUser(token: string): AuthResponse {
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             isActive: true,
-            activationToken: undefined
+            activationToken: undefined,
+            language: user.language,
+            theme: user.theme
         };
 
         console.log(`✅ Compte activé avec succès: ${user.email}`);
