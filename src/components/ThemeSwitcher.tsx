@@ -1,5 +1,4 @@
-import React from 'react';
-import { Sun, Moon, Sparkles } from 'lucide-react';
+import { Sun, Moon, Sparkles, Crown } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
 
 export const ThemeSwitcher: React.FC = () => {
@@ -8,7 +7,8 @@ export const ThemeSwitcher: React.FC = () => {
     const themes = [
         { id: 'light', icon: Sun, label: 'Light' },
         { id: 'dark', icon: Moon, label: 'Dark' },
-        { id: 'midnight', icon: Sparkles, label: 'Midnight' }
+        { id: 'midnight', icon: Sparkles, label: 'Midnight' },
+        { id: 'one-more-theme-studio', icon: Crown, label: 'ONE MORE' }
     ] as const;
 
     return (

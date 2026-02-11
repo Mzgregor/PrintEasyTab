@@ -9,21 +9,23 @@ export const LoginPage: React.FC = () => {
     const [error, setError] = useState('');
 
     // Auth from store
-    const { setViewMode, login } = useSongStore();
+    const { setViewMode, login, t } = useSongStore();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('UI: Login button clicked', { email });
         setIsLoading(true);
         setError('');
 
         // Mock login delay for UX
         setTimeout(() => {
+            console.log('UI: Executing login from store...');
             setIsLoading(false);
             const result = login(email, password);
+            console.log('UI: Login result received', result);
             if (!result.success) {
-                setError(result.error || 'Erreur de connexion');
+                setError(result.error || t('auth.error_login'));
             }
-            // If successful, the store will handle navigation
         }, 800);
     };
 
@@ -45,8 +47,8 @@ export const LoginPage: React.FC = () => {
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/5 rounded-full blur-3xl group-hover:bg-accent/10 transition-colors duration-1000" />
 
                 <div className="text-center relative z-10">
-                    <h1 className="text-4xl font-black uppercase tracking-widest text-accent mb-2">Connexion</h1>
-                    <p className="text-text-secondary text-sm font-medium uppercase tracking-wider">Accédez à votre espace One More Tab</p>
+                    <h1 className="text-4xl font-black uppercase tracking-widest text-accent mb-2">{t('auth.login_title')}</h1>
+                    <p className="text-text-secondary text-sm font-medium uppercase tracking-wider">{t('auth.subtitle')}</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-6 relative z-10">
@@ -66,7 +68,7 @@ export const LoginPage: React.FC = () => {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Votre email"
+                                placeholder={t('auth.email_placeholder')}
                                 className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
                                 required
                             />
@@ -81,7 +83,7 @@ export const LoginPage: React.FC = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Votre mot de passe"
+                                placeholder={t('auth.password_placeholder')}
                                 className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
                                 required
                             />
@@ -93,7 +95,7 @@ export const LoginPage: React.FC = () => {
                             type="button"
                             className="text-[11px] font-black uppercase tracking-wider text-text-secondary hover:text-accent transition-colors"
                         >
-                            J'ai oublié mon mot de passe !
+                            {t('auth.forgot_password')}
                         </button>
                     </div>
 
@@ -107,7 +109,7 @@ export const LoginPage: React.FC = () => {
                         ) : (
                             <>
                                 <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
-                                <span>Se connecter</span>
+                                <span>{t('auth.login_btn')}</span>
                             </>
                         )}
                     </button>
@@ -117,7 +119,7 @@ export const LoginPage: React.FC = () => {
                             <div className="w-full border-t border-border-main"></div>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-bg-secondary px-4 text-text-tertiary font-bold tracking-widest">ou</span>
+                            <span className="bg-bg-secondary px-4 text-text-tertiary font-bold tracking-widest">{t('auth.or')}</span>
                         </div>
                     </div>
 
@@ -126,14 +128,14 @@ export const LoginPage: React.FC = () => {
                         onClick={() => setViewMode('register')}
                         className="w-full flex items-center justify-center gap-3 py-4 bg-transparent border-2 border-accent text-accent rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-accent hover:text-white active:scale-95 transition-all group"
                     >
-                        <span>S'inscrire</span>
+                        <span>{t('auth.register_btn')}</span>
                     </button>
                 </form>
             </div>
 
             {/* Support Link */}
             <p className="mt-8 text-text-tertiary text-xs uppercase tracking-widest font-bold">
-                Besoin d'aide ? <button onClick={() => setViewMode('help')} className="text-accent hover:underline">Consultez la documentation</button>
+                {t('auth.help_text')} <button onClick={() => setViewMode('help')} className="text-accent hover:underline">{t('auth.documentation_link')}</button>
             </p>
         </div>
     );

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Square, Minus, Plus } from 'lucide-react';
+import { useSongStore } from '../store/useSongStore';
 
 export const Metronome: React.FC = () => {
+    const { t } = useSongStore();
     const [bpm, setBpm] = useState(120);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentBeat, setCurrentBeat] = useState(0);
@@ -163,7 +165,7 @@ export const Metronome: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[600px] bg-bg-primary text-text-primary p-8">
             <div className="w-full max-w-md skeuo-card p-10 space-y-10">
                 <div className="text-center space-y-2">
-                    <h2 className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em]">Metronome</h2>
+                    <h2 className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em]">{t('metronome.title')}</h2>
                     <div className="flex items-center justify-center gap-6">
                         <button
                             onClick={() => changeBpm(-1)}
@@ -179,7 +181,7 @@ export const Metronome: React.FC = () => {
                                 onChange={(e) => setBpm(Math.min(Math.max(parseInt(e.target.value) || 40, 40), 240))}
                                 className="bg-transparent text-8xl font-black text-center w-48 focus:outline-none focus:text-accent transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-text-primary"
                             />
-                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold text-text-secondary">BPM</div>
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold text-text-secondary">{t('metronome.bpm')}</div>
                         </div>
 
                         <button
@@ -204,7 +206,7 @@ export const Metronome: React.FC = () => {
                                         : 'text-text-secondary hover:text-text-primary'
                                     }`}
                             >
-                                {type}
+                                {t(`metronome.${type}`)}
                             </button>
                         ))}
                     </div>
@@ -248,7 +250,7 @@ export const Metronome: React.FC = () => {
             </div>
 
             <p className="mt-8 text-text-secondary text-sm text-center max-w-xs">
-                Perfect for practice. Precision timing powered by Web Audio.
+                {t('metronome.description')}
             </p>
         </div>
     );

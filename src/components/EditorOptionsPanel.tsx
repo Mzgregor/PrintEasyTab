@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
 
 export const EditorOptionsPanel: React.FC = () => {
-    const { songs, addSong } = useSongStore();
+    const { songs, addSong, t } = useSongStore();
     const isAtLimit = songs.length >= 4;
 
     return (
@@ -29,7 +29,7 @@ export const EditorOptionsPanel: React.FC = () => {
                         }`}
                 >
                     <Plus size={14} strokeWidth={4} />
-                    <span>Ajouter</span>
+                    <span>{t('editor.add')}</span>
                 </button>
             </div>
         </div>

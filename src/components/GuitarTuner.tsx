@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Guitar, Music, Mic, Square } from 'lucide-react';
+import { useSongStore } from '../store/useSongStore';
 
 const STRINGS = [
     { note: 'E', freq: 82.41, label: 'Low E', number: 6 },
@@ -13,6 +14,7 @@ const STRINGS = [
 type InstrumentType = 'guitar' | 'piano' | 'voice';
 
 export const GuitarTuner: React.FC = () => {
+    const { t } = useSongStore();
     const [activeString, setActiveString] = useState<number | null>(null);
     const [instrument, setInstrument] = useState<InstrumentType>('guitar');
     const audioContext = useRef<AudioContext | null>(null);
@@ -247,9 +249,9 @@ export const GuitarTuner: React.FC = () => {
     }, []);
 
     const instruments = [
-        { id: 'guitar', label: 'Guitare', icon: <Guitar size={18} /> },
-        { id: 'piano', label: 'Piano', icon: <Music size={18} /> },
-        { id: 'voice', label: 'Voix', icon: <Mic size={18} /> }
+        { id: 'guitar', label: t('tuner.guitar'), icon: <Guitar size={18} /> },
+        { id: 'piano', label: t('tuner.piano'), icon: <Music size={18} /> },
+        { id: 'voice', label: t('tuner.voice'), icon: <Mic size={18} /> }
     ];
 
     return (
@@ -259,7 +261,7 @@ export const GuitarTuner: React.FC = () => {
                 <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-48 h-48 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="text-center space-y-6 relative z-10 flex flex-col items-center">
-                    <h2 className="text-text-secondary text-[11px] font-black uppercase tracking-[0.4em] opacity-50">Reference Tuner</h2>
+                    <h2 className="text-text-secondary text-[11px] font-black uppercase tracking-[0.4em] opacity-50">{t('tuner.title')}</h2>
 
                     {/* Pro Instrument Selector */}
                     <div className="tuner-selector">
@@ -288,7 +290,7 @@ export const GuitarTuner: React.FC = () => {
                             className={`tuner-note-btn ${activeString === index ? 'active' : ''}`}
                         >
                             <span className="note-text">{string.note}</span>
-                            <span className="note-sub">Corde {string.number}</span>
+                            <span className="note-sub">{t('tuner.string')} {string.number}</span>
 
                             {activeString === index && (
                                 <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping opacity-30" />
@@ -305,7 +307,7 @@ export const GuitarTuner: React.FC = () => {
                         className={`tuner-stop-btn ${activeString !== null ? 'active' : 'disabled'}`}
                     >
                         <Square size={16} fill="currentColor" />
-                        Stop Tone
+                        {t('tuner.stop')}
                     </button>
                 </div>
             </div>
@@ -317,7 +319,7 @@ export const GuitarTuner: React.FC = () => {
                     ))}
                 </div>
                 <p className="text-text-secondary text-[10px] text-center max-w-xs uppercase tracking-[0.2em] font-black opacity-30">
-                    {instrument} Master Reference
+                    {instrument} {t('tuner.reference')}
                 </p>
             </div>
         </div>

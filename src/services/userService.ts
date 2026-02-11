@@ -9,6 +9,12 @@ import { generateActivationToken } from './emailService';
 
 const USERS_STORAGE_KEY = 'printeasy_users';
 
+// Central helper for email normalization
+const normalizeEmail = (email: string): string => {
+    return email ? email.trim().toLowerCase() : '';
+};
+
+
 // Initialize with default admin user if no users exist
 function initializeStorage() {
     const users = getAllUsersFromStorage();
@@ -79,7 +85,10 @@ function saveUsersToStorage(users: any[]) {
 export function getUserByEmail(email: string): User | null {
     try {
         const users = getAllUsersFromStorage();
-        const user = users.find(u => u.email === email);
+        const normalizedEmail = normalizeEmail(email);
+        if (!normalizedEmail) return null;
+
+        const user = users.find(u => normalizeEmail(u.email) === normalizedEmail);
         if (!user) return null;
 
         return {
@@ -121,11 +130,21 @@ export function getUserById(id: number): User | null {
 
 // Authenticate user with email and password
 export function authenticateUser(email: string, password: string): AuthResponse {
+    console.log('Service: authenticateUser started', { email });
     try {
         const users = getAllUsersFromStorage();
-        const user = users.find(u => u.email === email);
+        console.log(`Service: Found ${users.length} users in storage`);
+        const normalizedEmail = normalizeEmail(email);
+        console.log(`Service: Normalized email: [${normalizedEmail}]`);
+
+        if (!normalizedEmail) {
+            return { success: false, error: 'Veuillez saisir un email' };
+        }
+
+        const user = users.find(u => normalizeEmail(u.email) === normalizedEmail);
 
         if (!user) {
+            console.warn(`Auth failed: User not found [${normalizedEmail}]`);
             return {
                 success: false,
                 error: 'Email ou mot de passe incorrect'
@@ -136,6 +155,7 @@ export function authenticateUser(email: string, password: string): AuthResponse 
         const passwordMatch = bcrypt.compareSync(password, user.password_hash);
 
         if (!passwordMatch) {
+            console.warn(`Auth failed: Password mismatch for [${normalizedEmail}]`);
             return {
                 success: false,
                 error: 'Email ou mot de passe incorrect'
@@ -143,10 +163,15 @@ export function authenticateUser(email: string, password: string): AuthResponse 
         }
 
         // Check if account is active
-        if (!user.isActive) {
+        // Any account with isActive explicitly set to false is blocked.
+        // If isActive is undefined or true, it's allowed.
+        const isUserActive = user.isActive !== false;
+
+        if (!isUserActive) {
+            console.warn(`Auth failed: Account inactive [${normalizedEmail}]`);
             return {
                 success: false,
-                error: 'Votre compte n\'est pas encore activé. Veuillez vérifier votre email.'
+                error: 'Votre compte n\'est pas encore activé. Veuillez contacter un administrateur.'
             };
         }
 
@@ -181,9 +206,14 @@ export function authenticateUser(email: string, password: string): AuthResponse 
 export function createUser(data: CreateUserData): AuthResponse {
     try {
         const users = getAllUsersFromStorage();
+        const normalizedEmail = normalizeEmail(data.email);
+
+        if (!normalizedEmail) {
+            return { success: false, error: 'Email invalide' };
+        }
 
         // Check if user already exists
-        const existingUser = users.find(u => u.email === data.email);
+        const existingUser = users.find(u => normalizeEmail(u.email) === normalizedEmail);
         if (existingUser) {
             return {
                 success: false,
@@ -200,7 +230,7 @@ export function createUser(data: CreateUserData): AuthResponse {
 
         const newUser = {
             id: newId,
-            email: data.email,
+            email: normalizedEmail,
             password_hash: passwordHash,
             role: data.role,
             createdAt: new Date().toISOString(),
@@ -257,17 +287,27 @@ export function getAllUsers(): User[] {
 
 // Update user role
 export function updateUserRole(userId: number, newRole: UserRole): boolean {
+    return updateUser(userId, { role: newRole });
+}
+
+// Update user details (admin only)
+export function updateUser(userId: number, updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>): boolean {
     try {
         const users = getAllUsersFromStorage();
         const userIndex = users.findIndex(u => u.id === userId);
 
         if (userIndex === -1) return false;
 
-        users[userIndex].role = newRole;
+        // If manually activating/deactivating, sync activationToken
+        if (updates.isActive === true) {
+            updates.activationToken = undefined;
+        }
+
+        users[userIndex] = { ...users[userIndex], ...updates };
         saveUsersToStorage(users);
         return true;
     } catch (error) {
-        console.error('Error updating user role:', error);
+        console.error('Error updating user details:', error);
         return false;
     }
 }
@@ -357,7 +397,7 @@ export function activateUser(token: string): AuthResponse {
         const user = users[userIndex];
 
         // Check if already active
-        if (user.isActive) {
+        if (user.isActive === true) {
             return {
                 success: false,
                 error: 'Ce compte est déjà activé'
@@ -366,7 +406,7 @@ export function activateUser(token: string): AuthResponse {
 
         // Activate the account
         users[userIndex].isActive = true;
-        users[userIndex].activationToken = null; // Clear the token after activation
+        users[userIndex].activationToken = null;
         saveUsersToStorage(users);
 
         const userResponse: User = {

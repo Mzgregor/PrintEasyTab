@@ -25,7 +25,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
         transition,
     };
 
-    const { removeSection, duplicateSection, updateSection, addMeasure } = useSongStore();
+    const { removeSection, duplicateSection, updateSection, addMeasure, t } = useSongStore();
     const { globalLyricsFontSize, globalLyricsAlignment, theme } = useSongStore();
     const songMode = useSongStore((state: any) => state.songs.find((s: any) => s.id === songId)?.mode);
 
@@ -84,9 +84,9 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                                 onChange={(e) => updateSection(songId, section.id, { lyricsFont: e.target.value })}
                                 className="bg-transparent text-text-primary text-[10px] font-bold uppercase tracking-wider outline-none cursor-pointer"
                             >
-                                <option value="Inter">Sans</option>
-                                <option value="Georgia, serif">Serif</option>
-                                <option value="monospace">Mono</option>
+                                <option value="Inter">{t('section.font_sans')}</option>
+                                <option value="Georgia, serif">{t('section.font_serif')}</option>
+                                <option value="monospace">{t('section.font_mono')}</option>
                             </select>
                         </div>
 
@@ -180,14 +180,14 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                     <button
                         onClick={() => duplicateSection(songId, section.id)}
                         className="btn-skeuo-dark p-2"
-                        title="Duplicate"
+                        title={t('section.duplicate')}
                     >
                         <Copy size={16} />
                     </button>
                     <button
                         onClick={() => removeSection(songId, section.id)}
                         className="btn-skeuo-dark p-2 hover:text-red-500 hover:border-red-500/50"
-                        title="Delete"
+                        title={t('section.delete')}
                     >
                         <Trash2 size={16} />
                     </button>
@@ -210,7 +210,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                             fontFamily: section.lyricsFont || 'inherit',
                             lineHeight: '1.5',
                         }}
-                        placeholder="Paste lyrics here..."
+                        placeholder={t('section.lyrics_placeholder')}
                     />
                 ) : (
                     <div className="flex flex-wrap justify-center gap-2 w-full max-w-5xl">
@@ -229,7 +229,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                             <button
                                 onClick={() => addMeasure(songId, section.id)}
                                 className="w-full aspect-[4/3] border border-dashed border-border-main hover:border-accent rounded-lg flex items-center justify-center text-text-secondary hover:text-accent transition-colors bg-bg-tertiary/10 hover:bg-bg-tertiary/40"
-                                title="Add Measure"
+                                title={t('measure.add')}
                             >
                                 <Plus size={20} />
                             </button>

@@ -13,7 +13,7 @@ interface Props {
 export const SectionList: React.FC<Props> = ({ songId }) => {
     // Select the specific song we are editing
     const song = useSongStore(state => state.songs.find(s => s.id === songId));
-    const { addSection, moveSection } = useSongStore();
+    const { addSection, moveSection, t } = useSongStore();
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -34,7 +34,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-text-secondary text-xs font-bold uppercase tracking-widest">Structure</h3>
+                <h3 className="text-text-secondary text-xs font-bold uppercase tracking-widest">{t('section.structure')}</h3>
             </div>
 
             <DndContext
@@ -50,7 +50,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
                     <div className="space-y-3 min-h-[50px]">
                         {song.sections.length === 0 && (
                             <div className="text-center py-8 text-text-secondary border border-border-main rounded-lg border-dashed">
-                                Start by adding a section below
+                                {t('section.empty_state')}
                             </div>
                         )}
                         {song.sections.map((section) => (
@@ -74,7 +74,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
                                 <Plus size={16} strokeWidth={3} />
                             </div>
                             <span className="text-[13px] font-bold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
-                                {type}
+                                {t(`section.${type.toLowerCase()}`)}
                             </span>
                         </div>
                     </button>

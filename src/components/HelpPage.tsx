@@ -3,7 +3,7 @@ import { useSongStore } from '../store/useSongStore';
 import { ArrowLeft } from 'lucide-react';
 
 export const HelpPage: React.FC = () => {
-    const setViewMode = useSongStore(state => state.setViewMode);
+    const { setViewMode, t } = useSongStore();
 
     return (
         <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
@@ -17,10 +17,9 @@ export const HelpPage: React.FC = () => {
             </div>
 
             <div className="space-y-8 max-w-2xl">
-                <h1 className="text-4xl font-black uppercase tracking-widest text-accent">Help & Documentation</h1>
+                <h1 className="text-4xl font-black uppercase tracking-widest text-accent">{t('help.title')}</h1>
                 <p className="text-text-secondary text-lg leading-relaxed">
-                    Welcome to the Help section. This page will be updated with detailed instructions
-                    and documentation for using **One More Tab**.
+                    {t('help.desc').split('**').map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : part)}
                 </p>
 
                 <button
@@ -28,7 +27,7 @@ export const HelpPage: React.FC = () => {
                     className="btn-glossy-blue px-10 py-4 text-sm uppercase tracking-[0.2em] group"
                 >
                     <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                    <span>Retour à l'application</span>
+                    <span>{t('help.back')}</span>
                 </button>
             </div>
         </div>

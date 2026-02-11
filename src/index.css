@@ -78,8 +78,30 @@
   --shadow-skeuo: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
 }
 
-[data-theme='midnight'] {
-  /* Same as root but explicitly defined if needed */
+/* ONE MORE THEME STUDIO - High-end professional aesthetic */
+[data-theme='one-more-theme-studio'] {
+  --bg-primary: #0f1115;
+  --bg-secondary: #1a1d23;
+  --bg-tertiary: #242932;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent: #d4af37;
+  /* Metallic Gold */
+  --accent-muted: rgba(212, 175, 55, 0.1);
+  --border-main: rgba(212, 175, 55, 0.15);
+
+  /* Nav & Tab specific colors */
+  --nav-bg: #14161b;
+  --nav-border: rgba(212, 175, 55, 0.2);
+  --tab-bg: #0f1115;
+  --tab-bg-active: #1a1d23;
+  --tab-text: #64748b;
+  --tab-text-active: #d4af37;
+  --tab-accent: #d4af37;
+
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.6);
+  --shadow-skeuo: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+  --gloss-gradient: linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
 }
 
 @theme {
@@ -953,4 +975,81 @@
   border: 1px solid var(--nav-border);
   opacity: 0.4;
   cursor: default;
+}
+
+/* IOS/Pro Button Styles */
+.ios-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--nav-border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.ios-btn-icon:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ios-btn-icon:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.ios-primary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: white;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.ios-primary-btn:hover {
+  background: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.45);
+}
+
+.ios-primary-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in-out {
+  animation: fade-in-out 3s forwards ease-in-out;
 }

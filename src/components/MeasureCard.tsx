@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index }) => {
-    const { updateMeasure, removeMeasure } = useSongStore();
+    const { updateMeasure, removeMeasure, t } = useSongStore();
 
     // Local state for formatted text representation (e.g. "C Am7")
     const [text, setText] = useState('');
@@ -59,7 +59,7 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
             <button
                 onClick={() => removeMeasure(songId, sectionId, measure.id)}
                 className="absolute top-1.5 right-1.5 text-text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-black/20 rounded-md"
-                title="Remove Measure"
+                title={t('measure.remove')}
             >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
             </button>
@@ -74,6 +74,6 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
                     placeholder="-"
                 />
             </div>
-        </div>
+        </div >
     );
 };

@@ -4,8 +4,9 @@ import { useSongStore } from '../store/useSongStore';
 import {
     Menu, X, User, Settings, FileText, LogOut, HelpCircle,
     Type, AlignLeft, AlignCenter, AlignRight,
-    Sun, Moon, Ghost, Palette, Music, Guitar, Mic, Radio
+    Sun, Moon, Ghost, Palette, Music, Guitar, Mic, Radio, Library, Crown
 } from 'lucide-react';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface LayoutProps {
     editor: React.ReactNode;
@@ -20,7 +21,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
         setViewMode, viewMode,
-        logout, currentUser
+        logout, currentUser, t
     } = useSongStore();
 
     const currentSong = songs.find(s => s.id === activeSongId) || songs[0];
@@ -44,7 +45,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
             <aside className={`fixed top-0 left-0 h-full w-80 bg-bg-secondary border-r border-border-main z-[101] shadow-2xl transition-transform duration-300 ease-in-out transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-black uppercase tracking-widest text-accent">Menu</h2>
+                        <h2 className="text-xl font-black uppercase tracking-widest text-accent">{t('nav.admin')}</h2>
                         <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-bg-tertiary rounded-full transition-colors">
                             <X size={24} />
                         </button>
@@ -59,19 +60,19 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
                         >
                             <User className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
-                            <span className="font-bold text-sm tracking-wide">Mon Profil</span>
+                            <span className="font-bold text-sm tracking-wide">{t('nav.settings')}</span>
                         </button>
 
                         <div className="py-4 px-4 space-y-4 bg-bg-tertiary/30 rounded-2xl border border-border-main/50">
                             <div className="flex items-center gap-4 text-accent">
                                 <Settings size={20} />
-                                <span className="font-bold text-sm tracking-wide uppercase">Paramètres</span>
+                                <span className="font-bold text-sm tracking-wide uppercase">{t('nav.settings')}</span>
                             </div>
 
                             <div className="space-y-4 pl-9">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary flex items-center gap-2">
-                                        <Type size={12} /> Police Paroles ({globalLyricsFontSize}px)
+                                        <Type size={12} /> {t('editor.lyrics_font_size')} ({globalLyricsFontSize}px)
                                     </label>
                                     <input
                                         type="range" min="12" max="32"
@@ -83,7 +84,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary flex items-center gap-2">
-                                        <AlignLeft size={12} /> Alignement Texte
+                                        <AlignLeft size={12} /> {t('editor.lyrics_alignment')}
                                     </label>
                                     <div className="flex bg-bg-primary p-1 rounded-lg border border-border-main">
                                         {(['left', 'center', 'right'] as const).map((align) => (
@@ -104,13 +105,24 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
                         <button
                             onClick={() => {
+                                setViewMode('library');
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
+                        >
+                            <Library className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
+                            <span className="font-bold text-sm tracking-wide">{t('nav.library')}</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
                                 setViewMode('editor');
                                 setIsMenuOpen(false);
                             }}
                             className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
                         >
                             <FileText className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
-                            <span className="font-bold text-sm tracking-wide">Mes Tabs/Lyrics</span>
+                            <span className="font-bold text-sm tracking-wide">{t('nav.editor')} Tab/Lyrics</span>
                         </button>
 
                         {/* Admin Panel - Only visible to admins */}
@@ -123,7 +135,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                                 className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group bg-accent/5 border border-accent/20"
                             >
                                 <Settings className="text-accent transition-colors" size={20} />
-                                <span className="font-bold text-sm tracking-wide text-accent">Panneau Admin</span>
+                                <span className="font-bold text-sm tracking-wide text-accent">{t('nav.admin')}</span>
                             </button>
                         )}
 
@@ -135,7 +147,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group text-red-400"
                         >
                             <LogOut className="group-hover:text-red-500 transition-colors" size={20} />
-                            <span className="font-bold text-sm tracking-wide">Se déconnecter</span>
+                            <span className="font-bold text-sm tracking-wide">{t('nav.logout')}</span>
                         </button>
                     </nav>
 
@@ -147,7 +159,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                         className="mt-auto w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group"
                     >
                         <HelpCircle className="text-text-secondary group-hover:text-accent transition-colors" size={20} />
-                        <span className="font-bold text-sm tracking-wide">Help</span>
+                        <span className="font-bold text-sm tracking-wide">{t('nav.help')}</span>
                     </button>
                 </div>
             </aside>
@@ -202,13 +214,22 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             >
                                 <Radio />
                             </button>
+                            <button
+                                onClick={() => setViewMode('library')}
+                                className={`nav-btn-pro ${viewMode === 'library' ? 'nav-btn-pro-active !bg-emerald-500 !bg-gradient-to-br from-emerald-400 to-emerald-600' : 'btn-orange'}`}
+                                style={{ boxShadow: viewMode === 'library' ? '0 0 25px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)' : '' }}
+                                title="Library"
+                            >
+                                <Library />
+                            </button>
                         </div>
 
                         <div className="nav-mode-indicator">
                             <span className="nav-mode-title">
-                                {viewMode === 'metronome' ? 'Metronome' :
-                                    viewMode === 'tuner' ? 'Tuner' :
-                                        currentSong?.mode === 'lyrics' ? 'Lyrics Mode' : 'Chords Mode'}
+                                {viewMode === 'metronome' ? t('nav.metronome') :
+                                    viewMode === 'tuner' ? t('nav.tuner') :
+                                        viewMode === 'library' ? t('nav.library') :
+                                            currentSong?.mode === 'lyrics' ? t('nav.lyrics') : t('nav.chords')}
                             </span>
                         </div>
                     </div>
@@ -216,6 +237,8 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
                 {/* Right: Theme Controls */}
                 <div className="flex justify-end items-center gap-4 flex-1">
+                    <LanguageSwitcher />
+
                     <div className="relative group/theme">
                         <button className="btn-skeuo-dark p-2.5 rounded-xl hover:text-accent transition-colors">
                             <Palette size={22} />
@@ -223,14 +246,19 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
                         <div className="absolute right-0 top-full mt-2 w-44 bg-bg-secondary border border-border-main rounded-xl shadow-2xl opacity-0 invisible group-hover/theme:opacity-100 group-hover/theme:visible transition-all z-[102] overflow-hidden">
                             <div className="p-2 space-y-1">
-                                {(['light', 'dark', 'midnight'] as const).map((t) => (
+                                {(['light', 'dark', 'midnight', 'one-more-theme-studio'] as const).map((tValue) => (
                                     <button
-                                        key={t}
-                                        onClick={() => setTheme(t)}
-                                        className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${theme === t ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
+                                        key={tValue}
+                                        onClick={() => setTheme(tValue)}
+                                        className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${theme === tValue ? 'bg-accent text-white' : 'hover:bg-bg-tertiary text-text-primary'}`}
                                     >
-                                        {t === 'light' ? <Sun size={16} /> : t === 'dark' ? <Moon size={16} /> : <Ghost size={16} />}
-                                        <span className="font-bold text-[10px] uppercase tracking-wider">{t} Mode</span>
+                                        {tValue === 'light' ? <Sun size={16} /> :
+                                            tValue === 'dark' ? <Moon size={16} /> :
+                                                tValue === 'midnight' ? <Ghost size={16} /> :
+                                                    <Crown size={16} />}
+                                        <span className="font-bold text-[10px] uppercase tracking-wider">
+                                            {tValue === 'one-more-theme-studio' ? 'ONE MORE' : t(`theme.${tValue}`)} Mode
+                                        </span>
                                     </button>
                                 ))}
                             </div>
@@ -259,7 +287,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                         {/* Dedicated Options Toolbar */}
                         <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
                             <div className="flex-1">
-                                <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">Live Preview</h2>
+                                <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">{t('editor.live_preview')}</h2>
                             </div>
 
                             <div className="flex-1 flex justify-center">

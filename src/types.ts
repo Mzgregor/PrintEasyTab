@@ -29,11 +29,15 @@ export type Section = {
 
 export type Song = {
     id: string; // Unique ID for the song
+    userId?: number; // ID of the user who owns this song
     mode: 'chords' | 'lyrics'; // Display mode
     title: string;
     artist: string;
     capo: number; // 0-10, 0 = no capo
     sections: Section[];
+    isFavorite?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
 // User Management Types

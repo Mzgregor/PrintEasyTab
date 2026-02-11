@@ -13,6 +13,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { SettingsPage } from './components/SettingsPage';
 import { AccountActivationPage } from './components/AccountActivationPage';
 import { ConfirmationModal } from './components/ConfirmationModal';
+import { LibraryView } from './components/LibraryView';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -130,11 +131,13 @@ function App() {
           </PDFDownloadLink>
         }
         editor={
-          <div className="pb-10 max-w-[85%] mx-auto">
+          <div className="pb-10 max-w-[95%] mx-auto">
             {viewMode === 'metronome' ? (
               <Metronome />
             ) : viewMode === 'tuner' ? (
               <GuitarTuner />
+            ) : viewMode === 'library' ? (
+              <LibraryView />
             ) : (
               <div className="space-y-4">
                 {/* Browser-style Song Tabs - Relocated to Editor Area */}

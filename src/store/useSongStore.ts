@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { Song, Section, SectionType, Measure, ChordBlock, User, AuthResponse, UserRole } from '../types';
 import * as userService from '../services/userService';
+import { translations } from '../translations';
 
 interface SongState {
     songs: Song[];
@@ -27,17 +28,27 @@ interface SongState {
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
 
-    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin';
-    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin') => void;
+    viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library';
+    setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library') => void;
 
-    theme: 'light' | 'dark' | 'midnight';
-    setTheme: (theme: 'light' | 'dark' | 'midnight') => void;
+    theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio';
+    setTheme: (theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio') => void;
+
+    language: 'fr' | 'en';
+    setLanguage: (lang: 'fr' | 'en') => void;
 
     // Global Lyrics Settings
     globalLyricsFontSize: number;
     setGlobalLyricsFontSize: (size: number) => void;
     globalLyricsAlignment: 'left' | 'center' | 'right';
     setGlobalLyricsAlignment: (align: 'left' | 'center' | 'right') => void;
+
+    // Library State
+    librarySongs: Song[];
+    saveSong: (song: Song) => void;
+    toggleFavorite: (songId: string) => void;
+    deleteFromLibrary: (songIds: string[]) => void;
+    updateLibrarySong: (songId: string, updates: Partial<Song>) => void;
 
     // Auth state
     isAuthenticated: boolean;
@@ -54,8 +65,11 @@ interface SongState {
     createUserAsAdmin: (email: string, password: string, role: UserRole) => AuthResponse;
     deleteUserById: (userId: number) => void;
     updateUserRoleById: (userId: number, newRole: UserRole) => void;
+    updateUserDetails: (userId: number, updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>) => void;
     changeUserPassword: (currentPassword: string, newPassword: string) => boolean;
     activateAccount: (token: string) => AuthResponse;
+    // Helper to get translated string
+    t: (key: string) => string;
 }
 
 const createMeasure = (): Measure => ({
@@ -79,16 +93,50 @@ const createSection = (type: SectionType = 'Verse', index: number): Section => (
     lyricsBackground: '' // Empty means no highlight
 });
 
-const createSong = (): Song => ({
+const createSong = (userId?: number): Song => ({
     id: uuidv4(),
+    userId,
     mode: 'chords',
     title: '',
     artist: '',
     capo: 0,
-    sections: []
+    sections: [],
+    isFavorite: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
 });
 
 const initialSong = createSong();
+
+// Helper to load songs from localStorage (filtered by userId)
+const loadLibraryFromStorage = (userId?: number): Song[] => {
+    try {
+        const stored = localStorage.getItem('print_easy_tab_library');
+        if (!stored) return [];
+        const allSongs: Song[] = JSON.parse(stored);
+        if (userId === undefined) return []; // Return empty if no user (or we could return all, but for security empty is better)
+        return allSongs.filter(s => s.userId === userId);
+    } catch (e) {
+        console.error('Failed to load library from storage', e);
+        return [];
+    }
+};
+
+// Helper to save library to localStorage (merging with existing songs of other users)
+const saveLibraryToStorage = (userSongs: Song[], userId: number) => {
+    try {
+        const stored = localStorage.getItem('print_easy_tab_library');
+        const allSongs: Song[] = stored ? JSON.parse(stored) : [];
+
+        // Remove old versions of this user's songs and add the new ones
+        const otherUsersSongs = allSongs.filter(s => s.userId !== userId);
+        const newAllSongs = [...otherUsersSongs, ...userSongs];
+
+        localStorage.setItem('print_easy_tab_library', JSON.stringify(newAllSongs));
+    } catch (e) {
+        console.error('Failed to save library to storage', e);
+    }
+};
 
 export const useSongStore = create<SongState>((set, get) => ({
     songs: [initialSong],
@@ -96,7 +144,7 @@ export const useSongStore = create<SongState>((set, get) => ({
 
     addSong: () => set((state) => {
         if (state.songs.length >= 4) return {};
-        const newSong = createSong();
+        const newSong = createSong(state.currentUser?.id);
         return {
             songs: [...state.songs, newSong],
             activeSongId: newSong.id
@@ -283,18 +331,90 @@ export const useSongStore = create<SongState>((set, get) => ({
     globalLyricsAlignment: 'left',
     setGlobalLyricsAlignment: (globalLyricsAlignment) => set({ globalLyricsAlignment }),
 
+    // Language implementation
+    language: (localStorage.getItem('printeasy_lang') as 'fr' | 'en') || 'fr',
+    setLanguage: (language) => {
+        localStorage.setItem('printeasy_lang', language);
+        set({ language });
+    },
+
+    t: (key: string) => {
+        const state = get();
+        const lang = state.language;
+        return translations[lang]?.[key] || key;
+    },
+
+    // Library implementation
+    librarySongs: [], // Initialize empty, will be loaded on login
+
+    saveSong: (song) => set((state) => {
+        if (!state.currentUser) return {};
+
+        const existingIndex = state.librarySongs.findIndex(s => s.id === song.id);
+        let newLibrary;
+        const now = new Date().toISOString();
+        const songToSave = { ...song, userId: state.currentUser.id, updatedAt: now };
+
+        if (existingIndex >= 0) {
+            newLibrary = [...state.librarySongs];
+            newLibrary[existingIndex] = songToSave;
+        } else {
+            newLibrary = [...state.librarySongs, { ...songToSave, createdAt: now }];
+        }
+
+        saveLibraryToStorage(newLibrary, state.currentUser.id);
+        return { librarySongs: newLibrary };
+    }),
+
+    toggleFavorite: (songId) => set((state) => {
+        if (!state.currentUser) return {};
+
+        // Toggle in library
+        const newLibrary = state.librarySongs.map(s =>
+            s.id === songId ? { ...s, isFavorite: !s.isFavorite, updatedAt: new Date().toISOString() } : s
+        );
+
+        // Toggle in active session if present
+        const newSessionSongs = state.songs.map(s =>
+            s.id === songId ? { ...s, isFavorite: !s.isFavorite, updatedAt: new Date().toISOString() } : s
+        );
+
+        saveLibraryToStorage(newLibrary, state.currentUser.id);
+        return { librarySongs: newLibrary, songs: newSessionSongs };
+    }),
+
+    deleteFromLibrary: (songIds) => set((state) => {
+        if (!state.currentUser) return {};
+        const newLibrary = state.librarySongs.filter(s => !songIds.includes(s.id));
+        saveLibraryToStorage(newLibrary, state.currentUser.id);
+        return { librarySongs: newLibrary };
+    }),
+
+    updateLibrarySong: (songId, updates) => set((state) => {
+        if (!state.currentUser) return {};
+        const now = new Date().toISOString();
+        const newLibrary = state.librarySongs.map(s =>
+            s.id === songId ? { ...s, ...updates, updatedAt: now } : s
+        );
+        saveLibraryToStorage(newLibrary, state.currentUser.id);
+        return { librarySongs: newLibrary };
+    }),
+
     // Auth implementation
     isAuthenticated: false,
     currentUser: null,
     users: [],
 
     login: (email, password) => {
+        console.log('Store: Calling authenticateUser...', { email });
         const result = userService.authenticateUser(email, password);
+        console.log('Store: Authentication result', result);
         if (result.success && result.user) {
             set({
                 isAuthenticated: true,
                 currentUser: result.user,
-                viewMode: 'editor'
+                viewMode: 'editor',
+                librarySongs: loadLibraryFromStorage(result.user.id)
             });
         }
         return result;
@@ -306,11 +426,17 @@ export const useSongStore = create<SongState>((set, get) => ({
         return result;
     },
 
-    logout: () => set({
-        isAuthenticated: false,
-        currentUser: null,
-        viewMode: 'auth'
-    }),
+    logout: () => {
+        const initialSong = createSong();
+        set({
+            isAuthenticated: false,
+            currentUser: null,
+            viewMode: 'auth',
+            librarySongs: [],
+            songs: [initialSong],
+            activeSongId: initialSong.id
+        });
+    },
 
     // User management
     loadUsers: () => {
@@ -337,6 +463,14 @@ export const useSongStore = create<SongState>((set, get) => ({
 
     updateUserRoleById: (userId, newRole) => {
         const success = userService.updateUserRole(userId, newRole);
+        if (success) {
+            const allUsers = userService.getAllUsers();
+            set({ users: allUsers });
+        }
+    },
+
+    updateUserDetails: (userId, updates) => {
+        const success = userService.updateUser(userId, updates);
         if (success) {
             const allUsers = userService.getAllUsers();
             set({ users: allUsers });

@@ -3,7 +3,7 @@ import { useSongStore } from '../store/useSongStore';
 import { Settings, User, Lock, LogOut, Shield, Save, ArrowLeft } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-    const { currentUser, logout, setViewMode, changeUserPassword } = useSongStore();
+    const { currentUser, logout, setViewMode, changeUserPassword, t, language } = useSongStore();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,33 +17,33 @@ export const SettingsPage: React.FC = () => {
         setError('');
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            setError('Veuillez remplir tous les champs');
+            setError(t('common.fill_all'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setError('Les nouveaux mots de passe ne correspondent pas');
+            setError(t('settings.password_error_match'));
             return;
         }
 
         if (newPassword.length < 6) {
-            setError('Le mot de passe doit contenir au moins 6 caractères');
+            setError(t('settings.password_error_length'));
             return;
         }
 
         const success = changeUserPassword(currentPassword, newPassword);
         if (success) {
-            setMessage('Mot de passe modifié avec succès');
+            setMessage(t('settings.password_success'));
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } else {
-            setError('Mot de passe actuel incorrect');
+            setError(t('settings.password_error_current'));
         }
     };
 
     const handleLogout = () => {
-        if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        if (confirm(t('settings.logout_confirm'))) {
             logout();
         }
     };
@@ -67,7 +67,7 @@ export const SettingsPage: React.FC = () => {
                         className="flex items-center gap-2 text-text-secondary hover:text-accent transition-colors mb-6 font-bold uppercase text-sm group"
                     >
                         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        <span>Retour à l'application</span>
+                        <span>{t('settings.back_to_app')}</span>
                     </button>
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-accent/10 rounded-2xl">
@@ -75,10 +75,10 @@ export const SettingsPage: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-4xl font-black uppercase tracking-wider text-text-primary">
-                                Paramètres
+                                {t('settings.title')}
                             </h1>
                             <p className="text-text-secondary font-medium">
-                                Gérez votre compte et vos préférences
+                                {t('settings.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -88,33 +88,33 @@ export const SettingsPage: React.FC = () => {
                 <div className="bg-bg-secondary border border-border-main rounded-2xl p-6 mb-6">
                     <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-4 flex items-center gap-3">
                         <User size={24} className="text-accent" />
-                        Informations du compte
+                        {t('settings.account_info')}
                     </h2>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between py-3 border-b border-border-main">
-                            <span className="text-text-secondary font-bold uppercase text-sm">Email</span>
+                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.email')}</span>
                             <span className="text-text-primary font-medium">{currentUser?.email}</span>
                         </div>
                         <div className="flex items-center justify-between py-3 border-b border-border-main">
-                            <span className="text-text-secondary font-bold uppercase text-sm">Rôle</span>
+                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.role')}</span>
                             <div className="flex items-center gap-2">
                                 {isAdmin ? (
                                     <>
                                         <Shield size={16} className="text-accent" />
-                                        <span className="text-accent font-bold uppercase text-sm">Administrateur</span>
+                                        <span className="text-accent font-bold uppercase text-sm">{t('settings.admin')}</span>
                                     </>
                                 ) : (
                                     <>
                                         <User size={16} className="text-text-secondary" />
-                                        <span className="text-text-secondary font-bold uppercase text-sm">Utilisateur</span>
+                                        <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.user')}</span>
                                     </>
                                 )}
                             </div>
                         </div>
                         <div className="flex items-center justify-between py-3">
-                            <span className="text-text-secondary font-bold uppercase text-sm">Membre depuis</span>
+                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.member_since')}</span>
                             <span className="text-text-primary font-medium">
-                                {currentUser?.createdAt && new Date(currentUser.createdAt).toLocaleDateString('fr-FR')}
+                                {currentUser?.createdAt && new Date(currentUser.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                             </span>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="bg-bg-secondary border border-border-main rounded-2xl p-6 mb-6">
                     <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-4 flex items-center gap-3">
                         <Lock size={24} className="text-accent" />
-                        Changer le mot de passe
+                        {t('settings.change_password')}
                     </h2>
 
                     {message && (
@@ -142,7 +142,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-text-secondary font-bold uppercase text-xs mb-2">
-                                Mot de passe actuel
+                                {t('settings.current_password')}
                             </label>
                             <input
                                 type="password"
@@ -153,7 +153,7 @@ export const SettingsPage: React.FC = () => {
                         </div>
                         <div>
                             <label className="block text-text-secondary font-bold uppercase text-xs mb-2">
-                                Nouveau mot de passe
+                                {t('settings.new_password')}
                             </label>
                             <input
                                 type="password"
@@ -164,7 +164,7 @@ export const SettingsPage: React.FC = () => {
                         </div>
                         <div>
                             <label className="block text-text-secondary font-bold uppercase text-xs mb-2">
-                                Confirmer le nouveau mot de passe
+                                {t('settings.confirm_password')}
                             </label>
                             <input
                                 type="password"
@@ -178,7 +178,7 @@ export const SettingsPage: React.FC = () => {
                             className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-accent-light transition-all active:scale-95"
                         >
                             <Save size={20} />
-                            <span>Enregistrer le nouveau mot de passe</span>
+                            <span>{t('settings.save_password')}</span>
                         </button>
                     </div>
                 </div>
@@ -188,17 +188,17 @@ export const SettingsPage: React.FC = () => {
                     <div className="bg-bg-secondary border border-accent/30 rounded-2xl p-6 mb-6">
                         <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-4 flex items-center gap-3">
                             <Shield size={24} className="text-accent" />
-                            Administration
+                            {t('settings.admin_section')}
                         </h2>
                         <p className="text-text-secondary mb-4">
-                            Accédez au panneau d'administration pour gérer les utilisateurs et les permissions.
+                            {t('settings.admin_desc')}
                         </p>
                         <button
                             onClick={() => setViewMode('admin')}
                             className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-accent-light transition-all active:scale-95"
                         >
                             <Shield size={20} />
-                            <span>Ouvrir le panneau d'administration</span>
+                            <span>{t('settings.admin_btn')}</span>
                         </button>
                     </div>
                 )}
@@ -206,17 +206,17 @@ export const SettingsPage: React.FC = () => {
                 {/* Logout Section */}
                 <div className="bg-bg-secondary border border-border-main rounded-2xl p-6">
                     <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-4">
-                        Déconnexion
+                        {t('settings.logout_title')}
                     </h2>
                     <p className="text-text-secondary mb-4">
-                        Déconnectez-vous de votre compte One More Tab.
+                        {t('settings.logout_desc')}
                     </p>
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-red-500/20 transition-all active:scale-95"
                     >
                         <LogOut size={20} />
-                        <span>Se déconnecter</span>
+                        <span>{t('nav.logout')}</span>
                     </button>
                 </div>
             </div>
