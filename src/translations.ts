@@ -71,6 +71,7 @@ export const translations: Record<string, Record<string, string>> = {
         'common.back': 'Retour',
         'common.error': 'Erreur',
         'common.success': 'Succès',
+        'common.cancel': 'Annuler',
         'common.fill_all': 'Veuillez remplir tous les champs',
 
         // Settings
@@ -125,6 +126,8 @@ export const translations: Record<string, Record<string, string>> = {
         'auth.error_login': 'Erreur de connexion',
         'auth.error_register': 'Erreur lors de l\'inscription',
         'auth.error_password_match': 'Les nouveaux mots de passe ne correspondent pas',
+        'auth.logout_confirm_title': 'Déconnexion ?',
+        'auth.logout_confirm_message': 'Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous reconnecter pour accéder à vos Tabs sauvegardées.',
 
         // Success Popup
         'success.title': 'Inscription Réussie !',
@@ -293,6 +296,7 @@ export const translations: Record<string, Record<string, string>> = {
         'common.back': 'Back',
         'common.error': 'Error',
         'common.success': 'Success',
+        'common.cancel': 'Cancel',
         'common.fill_all': 'Please fill all fields',
 
         // Settings
@@ -347,6 +351,8 @@ export const translations: Record<string, Record<string, string>> = {
         'auth.error_login': 'Login error',
         'auth.error_register': 'Error during registration',
         'auth.error_password_match': 'Passwords do not match',
+        'auth.logout_confirm_title': 'Logout?',
+        'auth.logout_confirm_message': 'Are you sure you want to log out? You will need to sign back in to access your saved Tabs.',
 
         // Success Popup
         'success.title': 'Registration Successful!',

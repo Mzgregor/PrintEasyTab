@@ -255,70 +255,112 @@ export const GuitarTuner: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[500px] h-full bg-bg-primary text-text-primary p-4 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-full max-w-lg bg-bg-secondary rounded-[32px] p-8 sm:p-12 shadow-2xl border border-border-main space-y-10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mr-10 -mt-10 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-48 h-48 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col items-center justify-center min-h-full py-8 px-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Logo and Header */}
+            <div className="relative mb-6 group">
+                <div className="absolute inset-x-0 -inset-y-4 blur-3xl rounded-full opacity-30 bg-blue-500/20 group-hover:opacity-50 transition-opacity duration-1000"></div>
+                <img
+                    src="/LOGO_1_OMT.png"
+                    alt="One More Tab"
+                    className="h-24 w-auto relative z-10 drop-shadow-2xl transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+            </div>
 
-                <div className="text-center space-y-6 relative z-10 flex flex-col items-center">
-                    <h2 className="text-text-secondary text-[11px] font-black uppercase tracking-[0.4em] opacity-50">{t('tuner.title')}</h2>
+            <div className="w-full max-w-xl bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[3rem] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                {/* Decorative background glow */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full transition-opacity duration-1000 group-hover:bg-blue-500/10 pointer-events-none" />
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-accent/5 blur-3xl rounded-full transition-opacity duration-1000 group-hover:bg-accent/10 pointer-events-none" />
 
-                    {/* Pro Instrument Selector */}
-                    <div className="tuner-selector">
-                        {instruments.map((inst) => (
+                <div className="relative z-10 space-y-8">
+                    <div className="text-center space-y-6">
+                        <h2 className="text-text-secondary text-xs font-black uppercase tracking-[0.4em] opacity-60">
+                            {t('tuner.title')}
+                        </h2>
+
+                        {/* Premium Instrument Selector */}
+                        <div className="flex bg-black/20 backdrop-blur-md p-1.5 rounded-2xl w-full border border-white/5">
+                            {instruments.map((inst) => (
+                                <button
+                                    key={inst.id}
+                                    onClick={() => {
+                                        setInstrument(inst.id as InstrumentType);
+                                        if (activeString !== null) stopAudio();
+                                    }}
+                                    className={`flex-1 py-3 flex flex-col items-center gap-2 rounded-xl transition-all duration-500
+                                        ${instrument === inst.id
+                                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105'
+                                            : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
+                                        }`}
+                                >
+                                    <div className={`transition-transform duration-500 ${instrument === inst.id ? 'scale-110' : ''}`}>
+                                        {React.cloneElement(inst.icon as any, { size: 24 })}
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{inst.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Professional Note Selection Grid */}
+                    <div className="grid grid-cols-3 gap-6 sm:gap-8">
+                        {STRINGS.map((string, index) => (
                             <button
-                                key={inst.id}
-                                onClick={() => {
-                                    setInstrument(inst.id as InstrumentType);
-                                    if (activeString !== null) stopAudio();
-                                }}
-                                className={`tuner-btn-pro ${instrument === inst.id ? 'active' : ''}`}
+                                key={index}
+                                onClick={() => playString(string.freq, index)}
+                                className={`group/note relative flex flex-col items-center justify-center aspect-square rounded-3xl transition-all duration-500 border overflow-hidden
+                                    ${activeString === index
+                                        ? 'bg-blue-600/20 border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.2)]'
+                                        : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10'
+                                    }`}
                             >
-                                {inst.icon}
-                                <span>{inst.label}</span>
+                                <span className={`text-4xl font-black transition-all duration-500 ${activeString === index ? 'text-blue-400 scale-125' : 'text-text-primary'}`}>
+                                    {string.note}
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-widest opacity-40 mt-1">
+                                    {t('tuner.string')} {string.number}
+                                </span>
+
+                                {activeString === index && (
+                                    <div className="absolute inset-0 bg-blue-400/10 animate-pulse pointer-events-none" />
+                                )}
                             </button>
                         ))}
                     </div>
-                </div>
 
-                {/* Professional Note Pastilles */}
-                <div className="grid grid-cols-3 gap-6 sm:gap-8 relative z-10">
-                    {STRINGS.map((string, index) => (
+                    {/* Stop Button Section */}
+                    <div className="pt-2">
                         <button
-                            key={index}
-                            onClick={() => playString(string.freq, index)}
-                            className={`tuner-note-btn ${activeString === index ? 'active' : ''}`}
+                            onClick={stopAudio}
+                            disabled={activeString === null}
+                            className={`w-full py-5 flex items-center justify-center gap-3 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-sm transition-all duration-500
+                                ${activeString !== null
+                                    ? 'bg-white/10 text-white hover:bg-red-500/80 hover:scale-105 active:scale-95 border border-white/10'
+                                    : 'bg-white/5 text-text-tertiary opacity-30 cursor-not-allowed border border-transparent'
+                                }`}
                         >
-                            <span className="note-text">{string.note}</span>
-                            <span className="note-sub">{t('tuner.string')} {string.number}</span>
-
-                            {activeString === index && (
-                                <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping opacity-30" />
-                            )}
+                            <Square size={16} fill="currentColor" stroke="none" />
+                            {t('tuner.stop')}
                         </button>
-                    ))}
-                </div>
-
-                {/* Tactical Stop Button */}
-                <div className="pt-2 relative z-10">
-                    <button
-                        onClick={stopAudio}
-                        disabled={activeString === null}
-                        className={`tuner-stop-btn ${activeString !== null ? 'active' : 'disabled'}`}
-                    >
-                        <Square size={16} fill="currentColor" />
-                        {t('tuner.stop')}
-                    </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="mt-8 flex flex-col items-center gap-3">
-                <div className="flex gap-1.5">
+            {/* Immersive Feedback Indicators */}
+            <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="flex gap-2">
                     {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${activeString !== null ? 'bg-accent animate-bounce shadow-[0_0_8px_var(--accent)]' : 'bg-text-secondary/20'}`} style={{ animationDelay: `${i * 0.1}s` }} />
+                        <div
+                            key={i}
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-500 
+                                ${activeString !== null
+                                    ? 'bg-blue-400 animate-bounce shadow-[0_0_12px_rgba(96,165,250,0.6)]'
+                                    : 'bg-white/10'
+                                }`}
+                            style={{ animationDelay: `${i * 0.1}s` }}
+                        />
                     ))}
                 </div>
-                <p className="text-text-secondary text-[10px] text-center max-w-xs uppercase tracking-[0.2em] font-black opacity-30">
+                <p className="text-text-tertiary text-[10px] uppercase tracking-[0.4em] font-black opacity-30">
                     {instrument} {t('tuner.reference')}
                 </p>
             </div>

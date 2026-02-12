@@ -61,10 +61,13 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
             {!isReadOnly && (
                 <button
                     onClick={() => removeMeasure(songId, sectionId, measure.id)}
-                    className="absolute top-1.5 right-1.5 text-text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-black/20 rounded-md"
+                    className="absolute top-1 right-1 text-text-secondary hover:text-red-400 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 bg-black/30 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10"
                     title={t('measure.remove')}
                 >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
                 </button>
             )}
 

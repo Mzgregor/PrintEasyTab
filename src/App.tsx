@@ -132,7 +132,7 @@ function App() {
           </PDFDownloadLink>
         }
         editor={
-          <div className="pb-10 max-w-[95%] mx-auto">
+          <div className={(songs.length === 0 || viewMode === 'metronome' || viewMode === 'tuner') ? "h-full w-full" : "pb-10 max-w-[95%] mx-auto"}>
             {viewMode === 'metronome' ? (
               <Metronome />
             ) : viewMode === 'tuner' ? (
@@ -149,7 +149,7 @@ function App() {
                     <div
                       key={song.id}
                       onClick={() => setActiveSongId(song.id)}
-                      className={`song-tab ${activeSongId === song.id ? 'song-tab-active' : ''}`}
+                      className={`song-tab ${activeSongId === song.id ? 'song-tab-active' : ''} ${activeSongId === song.id && song.mode === 'lyrics' ? 'mode-lyrics' : ''}`}
                     >
                       <span className="song-tab-title">
                         {song.title || `Song #${index + 1}`}

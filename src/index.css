@@ -583,6 +583,15 @@
   z-index: -1;
 }
 
+.song-tab-active.mode-lyrics {
+  border-color: #8b5cf6;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.1), 0 0 15px rgba(139, 92, 246, 0.2);
+}
+
+.song-tab-active.mode-lyrics::before {
+  box-shadow: 0 0 20px #8b5cf6;
+}
+
 .song-tab-title {
   white-space: nowrap;
   overflow: hidden;

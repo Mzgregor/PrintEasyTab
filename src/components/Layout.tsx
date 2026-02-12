@@ -17,6 +17,8 @@ interface LayoutProps {
     pdfAction?: React.ReactNode;
 }
 
+import { StyledLogoutDialog } from './StyledLogoutDialog';
+
 export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) => {
     const {
         theme,
@@ -24,6 +26,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
         setViewMode, viewMode,
+        editorModeFallback, setEditorModeFallback,
         isReadOnly, likeSong,
         logout, currentUser, t
     } = useSongStore();
@@ -31,7 +34,9 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
     const currentSong = songs.find(s => s.id === activeSongId) || songs[0];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
     const profileRef = React.useRef<HTMLDivElement>(null);
+    const isSplitView = viewMode !== 'configuration' && viewMode !== 'library' && songs.length > 0;
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -52,8 +57,21 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
         };
     }, [isProfileOpen]);
 
+    const handleLogout = () => {
+        logout();
+        setIsLogoutDialogOpen(false);
+        setIsMenuOpen(false);
+    };
+
     return (
         <div className="h-screen flex flex-col bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-accent selection:text-white relative">
+
+            {/* Custom Logout Confirmation Dialog */}
+            <StyledLogoutDialog
+                isOpen={isLogoutDialogOpen}
+                onClose={() => setIsLogoutDialogOpen(false)}
+                onConfirm={handleLogout}
+            />
 
             {/* Burger Menu Sidebar / Overlay */}
             {isMenuOpen && (
@@ -146,7 +164,6 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                             <span className="font-bold text-sm tracking-wide">{t('nav.editor')} Tab/Lyrics</span>
                         </button>
 
-                        {/* Admin Panel - Only visible to admins */}
                         {currentUser?.role === 'admin' && (
                             <button
                                 onClick={() => {
@@ -159,17 +176,6 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                                 <span className="font-bold text-sm tracking-wide text-accent">{t('nav.admin')}</span>
                             </button>
                         )}
-
-                        <button
-                            onClick={() => {
-                                logout();
-                                setIsMenuOpen(false);
-                            }}
-                            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-bg-tertiary transition-all group text-red-400"
-                        >
-                            <LogOut className="group-hover:text-red-500 transition-colors" size={20} />
-                            <span className="font-bold text-sm tracking-wide">{t('nav.logout')}</span>
-                        </button>
                     </nav>
 
                     <button
@@ -189,11 +195,17 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
             <header className="h-56 flex items-center justify-between px-12 bg-bg-secondary border-b border-border-main relative z-[100] shadow-2xl">
                 {/* Left: Logo */}
                 <div className="flex justify-start items-center flex-1">
-                    <img
-                        src="/LOGO_1_OMT.png"
-                        alt="One More Tab Logo"
-                        className="h-44 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
-                    />
+                    <button
+                        onClick={() => setViewMode('editor')}
+                        className="hover:opacity-80 transition-opacity focus:outline-none"
+                        title="Retour à l'accueil"
+                    >
+                        <img
+                            src="/LOGO_1_OMT.png"
+                            alt="One More Tab Logo"
+                            className="h-44 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                        />
+                    </button>
                 </div>
 
                 {/* Center: Compact Navigation Console */}
@@ -201,15 +213,23 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     <div className="nav-console animate-in fade-in slide-in-from-top-4 duration-700">
                         <div className="nav-group p-1.5 bg-bg-tertiary/60 backdrop-blur-xl border-2 border-border-main rounded-[2.5rem] shadow-2xl">
                             <button
-                                onClick={() => currentSong && (setMode(currentSong.id, 'chords'), setViewMode('editor'))}
-                                className={`nav-btn-pro btn-blue !h-16 !w-16 ${currentSong?.mode === 'chords' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                onClick={() => {
+                                    if (currentSong) setMode(currentSong.id, 'chords');
+                                    else setEditorModeFallback('chords');
+                                    setViewMode('editor');
+                                }}
+                                className={`nav-btn-pro btn-blue !h-16 !w-16 ${(viewMode === 'editor' && (currentSong ? currentSong.mode === 'chords' : editorModeFallback === 'chords')) ? 'nav-btn-pro-active' : ''}`}
                                 title="Chords Mode"
                             >
                                 <Guitar size={28} />
                             </button>
                             <button
-                                onClick={() => currentSong && (setMode(currentSong.id, 'lyrics'), setViewMode('editor'))}
-                                className={`nav-btn-pro btn-violet !h-16 !w-16 ${currentSong?.mode === 'lyrics' && viewMode === 'editor' ? 'nav-btn-pro-active' : ''}`}
+                                onClick={() => {
+                                    if (currentSong) setMode(currentSong.id, 'lyrics');
+                                    else setEditorModeFallback('lyrics');
+                                    setViewMode('editor');
+                                }}
+                                className={`nav-btn-pro btn-violet !h-16 !w-16 ${(viewMode === 'editor' && (currentSong ? currentSong.mode === 'lyrics' : editorModeFallback === 'lyrics')) ? 'nav-btn-pro-active' : ''}`}
                                 title="Lyrics Mode"
                             >
                                 <Mic size={28} />
@@ -251,7 +271,7 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                                     viewMode === 'tuner' ? t('nav.tuner') :
                                         viewMode === 'library' ? t('nav.library') :
                                             viewMode === 'configuration' ? t('nav.configuration') :
-                                                currentSong?.mode === 'lyrics' ? t('nav.lyrics') : t('nav.chords')}
+                                                (currentSong ? currentSong.mode === 'lyrics' : editorModeFallback === 'lyrics') ? t('nav.lyrics') : t('nav.chords')}
                             </span>
                         </div>
                     </div>
@@ -303,10 +323,8 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
 
                                 <button
                                     onClick={() => {
-                                        if (confirm(t('settings.logout_confirm'))) {
-                                            logout();
-                                            setIsProfileOpen(false);
-                                        }
+                                        setIsLogoutDialogOpen(true);
+                                        setIsProfileOpen(false);
                                     }}
                                     className="w-full flex items-center gap-4 px-6 py-4 hover:bg-bg-tertiary transition-colors text-red-400 group"
                                 >
@@ -332,48 +350,54 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
             <div className="flex-1 min-h-0">
                 <PanelGroup orientation="horizontal">
                     {/* Editor Panel - Sidebar Style */}
-                    <Panel defaultSize={(viewMode === 'configuration' || viewMode === 'library') ? 100 : 70} minSize={(viewMode === 'configuration' || viewMode === 'library') ? 100 : 20} className="flex flex-col border-r border-border-main bg-bg-primary">
-                        <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-8 w-full">
+                    <Panel
+                        defaultSize={isSplitView ? 70 : 100}
+                        className="flex flex-col border-r border-border-main bg-bg-primary"
+                    >
+                        <div className={`flex-1 overflow-y-auto custom-scrollbar w-full ${(songs.length === 0 || viewMode === 'metronome' || viewMode === 'tuner') ? '' : 'px-6 py-6 space-y-8'}`}>
                             {viewMode === 'configuration' ? (
                                 <ConfigurationView />
                             ) : (
-                                <div className="skeuo-inset min-h-full p-6">
+                                <div className={`${(songs.length === 0 || viewMode === 'metronome' || viewMode === 'tuner') ? 'h-full' : 'skeuo-inset min-h-full p-6'}`}>
                                     {editor}
                                 </div>
                             )}
                         </div>
                     </Panel>
 
-                    {(viewMode !== 'configuration' && viewMode !== 'library') && (
-                        <>
-                            <PanelResizeHandle className="w-1 bg-bg-secondary hover:bg-accent transition-colors flex items-center justify-center cursor-col-resize group z-50">
-                                <div className="w-0.5 h-8 bg-border-main group-hover:bg-white rounded-full transition-colors" />
-                            </PanelResizeHandle>
+                    {isSplitView && (
+                        <PanelResizeHandle className="w-1 bg-bg-secondary hover:bg-accent transition-colors flex items-center justify-center cursor-col-resize group z-50">
+                            <div className="w-0.5 h-8 bg-border-main group-hover:bg-white rounded-full transition-colors" />
+                        </PanelResizeHandle>
+                    )}
 
-                            {/* Preview Panel - Main Content Style */}
-                            <Panel defaultSize={30} minSize={20} className="flex flex-col relative bg-bg-secondary">
-                                {/* Dedicated Options Toolbar */}
-                                <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
-                                    <div className="flex-1">
-                                        <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">{t('editor.live_preview')}</h2>
-                                    </div>
-
-                                    <div className="flex-1 flex justify-center">
-                                        {pdfAction}
-                                    </div>
-
-                                    <div className="flex-1" />
-                                </header>
-
-                                {/* Center the Content based on View Mode */}
-                                <div className="flex-1 overflow-hidden p-6 flex items-center justify-center bg-bg-primary w-full">
-                                    {viewMode === 'admin' ? <AdminPanel /> :
-                                        viewMode === 'settings' ? <SettingsPage /> :
-                                            viewMode === 'help' ? <HelpPage /> :
-                                                preview}
+                    {isSplitView && (
+                        /* Preview Panel - Main Content Style */
+                        <Panel
+                            defaultSize={30}
+                            className="flex flex-col relative bg-bg-secondary"
+                        >
+                            {/* Dedicated Options Toolbar */}
+                            <header className="px-6 py-3 border-b border-border-main bg-bg-secondary flex items-center z-20 w-full flex-shrink-0 min-h-[64px] shadow-md">
+                                <div className="flex-1">
+                                    <h2 className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em]">{t('editor.live_preview')}</h2>
                                 </div>
-                            </Panel>
-                        </>
+
+                                <div className="flex-1 flex justify-center">
+                                    {pdfAction}
+                                </div>
+
+                                <div className="flex-1" />
+                            </header>
+
+                            {/* Center the Content based on View Mode - Removed padding to maximize PDF space */}
+                            <div className="flex-1 overflow-hidden flex items-center justify-center bg-bg-primary w-full">
+                                {viewMode === 'admin' ? <AdminPanel /> :
+                                    viewMode === 'settings' ? <SettingsPage /> :
+                                        viewMode === 'help' ? <HelpPage /> :
+                                            preview}
+                            </div>
+                        </Panel>
                     )}
                 </PanelGroup>
             </div>

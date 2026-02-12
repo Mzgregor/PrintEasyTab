@@ -34,6 +34,9 @@ interface SongState {
     viewMode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library' | 'configuration';
     setViewMode: (mode: 'editor' | 'metronome' | 'tuner' | 'help' | 'auth' | 'register' | 'settings' | 'admin' | 'library' | 'configuration') => void;
 
+    editorModeFallback: 'chords' | 'lyrics';
+    setEditorModeFallback: (mode: 'chords' | 'lyrics') => void;
+
     theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio';
     setTheme: (theme: 'light' | 'dark' | 'midnight' | 'one-more-theme-studio') => void;
 
@@ -337,6 +340,9 @@ export const useSongStore = create<SongState>((set, get) => ({
     viewMode: 'editor',
     setViewMode: (viewMode) => set({ viewMode }),
 
+    editorModeFallback: 'chords',
+    setEditorModeFallback: (editorModeFallback) => set({ editorModeFallback }),
+
     theme: 'dark',
     setTheme: (theme) => {
         const state = get();
@@ -447,7 +453,8 @@ export const useSongStore = create<SongState>((set, get) => ({
                 viewMode: 'editor',
                 librarySongs: loadLibraryFromStorage(result.user.id),
                 language: result.user.language || get().language,
-                theme: result.user.theme || get().theme
+                theme: result.user.theme || get().theme,
+                editorModeFallback: 'chords'
             });
 
             // Ensure localStorage is updated for non-logged in state fallback
@@ -465,14 +472,14 @@ export const useSongStore = create<SongState>((set, get) => ({
     },
 
     logout: () => {
-        const initialSong = createSong();
         set({
             isAuthenticated: false,
             currentUser: null,
             viewMode: 'auth',
             librarySongs: [],
-            songs: [initialSong],
-            activeSongId: initialSong.id
+            songs: [],
+            activeSongId: null,
+            editorModeFallback: 'chords'
         });
     },
 
