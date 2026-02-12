@@ -22,6 +22,13 @@ function initializeStorage() {
     // Migration: Activate all existing admin accounts that don't have isActive field
     let needsSave = false;
     users.forEach(user => {
+        // Migration: Add default username based on email for existing users
+        if (!user.username && user.email) {
+            user.username = user.email.split('@')[0];
+            needsSave = true;
+            console.log(`✅ Migration: Added username ${user.username} for ${user.email}`);
+        }
+
         if (user.role === 'admin' && user.isActive === undefined) {
             user.isActive = true;
             user.activationToken = null;
@@ -46,6 +53,7 @@ function initializeStorage() {
         const adminUser = {
             id: 1,
             email: 'admin@printeasy.tab',
+            username: 'admin',
             role: 'admin',
             createdAt: new Date().toISOString(),
             lastLogin: null,
@@ -94,6 +102,7 @@ export function getUserByEmail(email: string): User | null {
         return {
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
@@ -118,6 +127,7 @@ export function getUserById(id: number): User | null {
         return {
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
@@ -132,26 +142,29 @@ export function getUserById(id: number): User | null {
     }
 }
 
-// Authenticate user with email and password
-export function authenticateUser(email: string, password: string): AuthResponse {
-    console.log('Service: authenticateUser started', { email });
+// Authenticate user with identifier (email or username) and password
+export function authenticateUser(identifier: string, password: string): AuthResponse {
+    console.log('Service: authenticateUser started', { identifier });
     try {
         const users = getAllUsersFromStorage();
         console.log(`Service: Found ${users.length} users in storage`);
-        const normalizedEmail = normalizeEmail(email);
-        console.log(`Service: Normalized email: [${normalizedEmail}]`);
+        const normalizedIdentifier = identifier ? identifier.trim().toLowerCase() : '';
+        console.log(`Service: Normalized identifier: [${normalizedIdentifier}]`);
 
-        if (!normalizedEmail) {
-            return { success: false, error: 'Veuillez saisir un email' };
+        if (!normalizedIdentifier) {
+            return { success: false, error: 'Veuillez saisir un identifiant' };
         }
 
-        const user = users.find(u => normalizeEmail(u.email) === normalizedEmail);
+        const user = users.find(u =>
+            normalizeEmail(u.email) === normalizedIdentifier ||
+            (u.username && u.username.toLowerCase() === normalizedIdentifier)
+        );
 
         if (!user) {
-            console.warn(`Auth failed: User not found [${normalizedEmail}]`);
+            console.warn(`Auth failed: User not found [${normalizedIdentifier}]`);
             return {
                 success: false,
-                error: 'Email ou mot de passe incorrect'
+                error: 'Identifiant ou mot de passe incorrect'
             };
         }
 
@@ -159,10 +172,10 @@ export function authenticateUser(email: string, password: string): AuthResponse 
         const passwordMatch = bcrypt.compareSync(password, user.password_hash);
 
         if (!passwordMatch) {
-            console.warn(`Auth failed: Password mismatch for [${normalizedEmail}]`);
+            console.warn(`Auth failed: Password mismatch for [${normalizedIdentifier}]`);
             return {
                 success: false,
-                error: 'Email ou mot de passe incorrect'
+                error: 'Identifiant ou mot de passe incorrect'
             };
         }
 
@@ -172,7 +185,7 @@ export function authenticateUser(email: string, password: string): AuthResponse 
         const isUserActive = user.isActive !== false;
 
         if (!isUserActive) {
-            console.warn(`Auth failed: Account inactive [${normalizedEmail}]`);
+            console.warn(`Auth failed: Account inactive [${normalizedIdentifier}]`);
             return {
                 success: false,
                 error: 'Votre compte n\'est pas encore activé. Veuillez contacter un administrateur.'
@@ -186,6 +199,7 @@ export function authenticateUser(email: string, password: string): AuthResponse 
         const userResponse: User = {
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
@@ -219,11 +233,21 @@ export function createUser(data: CreateUserData): AuthResponse {
         }
 
         // Check if user already exists
-        const existingUser = users.find(u => normalizeEmail(u.email) === normalizedEmail);
-        if (existingUser) {
+        const emailExists = users.some(u => normalizeEmail(u.email) === normalizedEmail);
+        if (emailExists) {
             return {
                 success: false,
                 error: 'Un compte avec cet email existe déjà'
+            };
+        }
+
+        const usernameStripped = data.username.trim();
+        const usernameLower = usernameStripped.toLowerCase();
+        const usernameExists = users.some(u => u.username && u.username.toLowerCase() === usernameLower);
+        if (usernameExists) {
+            return {
+                success: false,
+                error: 'Ce pseudo est déjà utilisé'
             };
         }
 
@@ -237,6 +261,7 @@ export function createUser(data: CreateUserData): AuthResponse {
         const newUser = {
             id: newId,
             email: normalizedEmail,
+            username: usernameStripped,
             password_hash: passwordHash,
             role: data.role,
             createdAt: new Date().toISOString(),
@@ -253,6 +278,7 @@ export function createUser(data: CreateUserData): AuthResponse {
         const userResponse: User = {
             id: newUser.id,
             email: newUser.email,
+            username: newUser.username,
             role: newUser.role as UserRole,
             createdAt: newUser.createdAt,
             lastLogin: newUser.lastLogin,
@@ -283,6 +309,7 @@ export function getAllUsers(): User[] {
         return users.map(user => ({
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
@@ -302,8 +329,8 @@ export function updateUserRole(userId: number, newRole: UserRole): boolean {
     return updateUser(userId, { role: newRole });
 }
 
-// Update user details (admin only)
-export function updateUser(userId: number, updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>): boolean {
+// Update user details
+export function updateUser(userId: number, updates: Partial<Omit<User, 'id' | 'createdAt'>>): boolean {
     try {
         const users = getAllUsersFromStorage();
         const userIndex = users.findIndex(u => u.id === userId);
@@ -313,6 +340,34 @@ export function updateUser(userId: number, updates: Partial<Omit<User, 'id' | 'e
         // If manually activating/deactivating, sync activationToken
         if (updates.isActive === true) {
             updates.activationToken = undefined;
+        }
+
+        // Validate email if it's being updated
+        if (updates.email !== undefined) {
+            const normalizedEmail = normalizeEmail(updates.email);
+            if (!normalizedEmail) {
+                console.error('Invalid email');
+                return false;
+            }
+            updates.email = normalizedEmail;
+
+            // Check if email already exists for another user
+            const emailExists = users.some(u => u.id !== userId && normalizeEmail(u.email) === normalizedEmail);
+            if (emailExists) {
+                console.error('Email already exists');
+                return false;
+            }
+        }
+
+        // Validate username uniqueness if it's being updated
+        if (updates.username !== undefined) {
+            updates.username = updates.username.trim();
+            const usernameLower = updates.username.toLowerCase();
+            const usernameExists = users.some(u => u.id !== userId && u.username && u.username.toLowerCase() === usernameLower);
+            if (usernameExists) {
+                console.error('Username already exists');
+                return false;
+            }
         }
 
         users[userIndex] = { ...users[userIndex], ...updates };
@@ -381,6 +436,7 @@ export function getUserByActivationToken(token: string): User | null {
         return {
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
@@ -426,6 +482,7 @@ export function activateUser(token: string): AuthResponse {
         const userResponse: User = {
             id: user.id,
             email: user.email,
+            username: user.username || user.email.split('@')[0],
             role: user.role as UserRole,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,

@@ -78,6 +78,7 @@ export const translations: Record<string, Record<string, string>> = {
         'settings.subtitle': 'Gérez votre compte et vos préférences',
         'settings.account_info': 'Informations du compte',
         'settings.email': 'Email',
+        'settings.username': 'Pseudo',
         'settings.role': 'Rôle',
         'settings.member_since': 'Membre depuis',
         'settings.admin': 'Administrateur',
@@ -109,9 +110,12 @@ export const translations: Record<string, Record<string, string>> = {
         'auth.login_btn': 'Se connecter',
         'auth.register_btn': 'S\'inscrire',
         'auth.email_placeholder': 'Votre email',
+        'auth.identifier_placeholder': 'Email ou Pseudo',
+        'auth.username_placeholder': 'Votre pseudo',
         'auth.password_placeholder': 'Votre mot de passe',
         'auth.password_min_placeholder': 'Mot de passe (min. 6 caractères)',
         'auth.confirm_password_placeholder': 'Confirmez le mot de passe',
+        'auth.error_username_exists': 'Ce pseudo est déjà utilisé',
         'auth.create_account_btn': 'Créer mon compte',
         'auth.back_to_login': 'Retour à la connexion',
         'auth.forgot_password': 'J\'ai oublié mon mot de passe !',
@@ -134,6 +138,15 @@ export const translations: Record<string, Record<string, string>> = {
         'success.copied_btn': 'Copié !',
         'success.console_reminder': 'Le lien d\'activation est également disponible dans la console du navigateur',
         'success.close': 'Fermer',
+
+        // Library Views
+        'library.my_library': 'Ma Bibliothèque',
+        'library.global_library': 'Bibliothèque Publique',
+        'library.creator': 'Créateur',
+        'library.view_song': 'Voir la tablature',
+        'library.add_to_favorites': 'Ajouter aux favoris',
+        'library.no_global_songs': 'Aucune chanson publique trouvée',
+        'library.view_mode': 'Mode Vue (Lecture seule)',
 
         // Help
         'help.title': 'Documentation',
@@ -287,6 +300,7 @@ export const translations: Record<string, Record<string, string>> = {
         'settings.subtitle': 'Manage your account and preferences',
         'settings.account_info': 'Account Information',
         'settings.email': 'Email',
+        'settings.username': 'Username',
         'settings.role': 'Role',
         'settings.member_since': 'Member since',
         'settings.admin': 'Administrator',
@@ -318,9 +332,12 @@ export const translations: Record<string, Record<string, string>> = {
         'auth.login_btn': 'Log In',
         'auth.register_btn': 'Sign Up',
         'auth.email_placeholder': 'Your email',
+        'auth.identifier_placeholder': 'Email or Username',
+        'auth.username_placeholder': 'Your username',
         'auth.password_placeholder': 'Your password',
         'auth.password_min_placeholder': 'Password (min. 6 characters)',
         'auth.confirm_password_placeholder': 'Confirm your password',
+        'auth.error_username_exists': 'This username is already taken',
         'auth.create_account_btn': 'Create my account',
         'auth.back_to_login': 'Back to Login',
         'auth.forgot_password': 'I forgot my password!',
@@ -343,6 +360,15 @@ export const translations: Record<string, Record<string, string>> = {
         'success.copied_btn': 'Copied!',
         'success.console_reminder': 'The activation link is also available in the browser console',
         'success.close': 'Close',
+
+        // Library Views
+        'library.my_library': 'My Library',
+        'library.global_library': 'Global Library',
+        'library.creator': 'Creator',
+        'library.view_song': 'View tab',
+        'library.add_to_favorites': 'Add to favorites',
+        'library.no_global_songs': 'No public songs found',
+        'library.view_mode': 'View Mode (Read-only)',
 
         // Help
         'help.title': 'Documentation',

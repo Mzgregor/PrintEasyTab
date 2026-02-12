@@ -15,6 +15,7 @@ import { AccountActivationPage } from './components/AccountActivationPage';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { LibraryView } from './components/LibraryView';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -59,7 +60,7 @@ function App() {
 
   const [songToDelete, setSongToDelete] = React.useState<string | null>(null);
 
-  const activeSong = songs.find((s: any) => s.id === activeSongId) || songs[0];
+  const activeSong = songs.find((s: any) => s.id === activeSongId) || (songs.length > 0 ? songs[0] : null);
 
   // Check for activation token in URL
   useEffect(() => {
@@ -138,6 +139,8 @@ function App() {
               <GuitarTuner />
             ) : viewMode === 'library' ? (
               <LibraryView />
+            ) : songs.length === 0 ? (
+              <WelcomeScreen onCreateTab={addSong} />
             ) : (
               <div className="space-y-4">
                 {/* Browser-style Song Tabs - Relocated to Editor Area */}
@@ -197,10 +200,11 @@ function App() {
 
       <ConfirmationModal
         isOpen={!!songToDelete}
-        title="Supprimer la chanson ?"
-        message="Cette action est irréversible. Toutes les tablatures et paroles associées à cette chanson seront définitivement supprimées."
-        confirmText="Supprimer"
+        title={songs.find((s: any) => s.id === songToDelete)?.title ? `Quitter la chanson "${songs.find((s: any) => s.id === songToDelete).title}" ?` : "Quitter la chanson ?"}
+        message="Voulez-vous vraiment quitter cet onglet ? Assurez-vous d'avoir sauvegardé vos modifications si nécessaire."
+        confirmText="Quitter"
         cancelText="Annuler"
+        variant="warning"
         onConfirm={() => {
           if (songToDelete) {
             removeSong(songToDelete);

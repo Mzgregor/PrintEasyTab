@@ -2,7 +2,10 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { Song, Section, SectionType, Measure, ChordBlock, User, AuthResponse, UserRole } from '../types';
 import * as userService from '../services/userService';
-import { translations } from '../translations';
+import * as translationsModule from '../translations';
+
+// Extract the translations object safely
+const allTranslations = (translationsModule.translations || (translationsModule as any).default || translationsModule) as any;
 
 interface SongState {
     songs: Song[];
@@ -50,22 +53,30 @@ interface SongState {
     deleteFromLibrary: (songIds: string[]) => void;
     updateLibrarySong: (songId: string, updates: Partial<Song>) => void;
 
+    // Global & View State
+    allGlobalSongs: Song[];
+    isReadOnly: boolean;
+    setIsReadOnly: (isReadOnly: boolean) => void;
+    fetchAllGlobalSongs: () => void;
+    likeSong: (songId: string) => void;
+    openSong: (song: Song, readOnly: boolean) => void;
+
     // Auth state
     isAuthenticated: boolean;
     currentUser: User | null;
     users: User[];
 
     // Auth methods
-    login: (email: string, password: string) => AuthResponse;
-    register: (email: string, password: string) => AuthResponse;
+    login: (identifier: string, password: string) => AuthResponse;
+    register: (email: string, username: string, password: string) => AuthResponse;
     logout: () => void;
 
     // User management methods
     loadUsers: () => void;
-    createUserAsAdmin: (email: string, password: string, role: UserRole) => AuthResponse;
+    createUserAsAdmin: (email: string, username: string, password: string, role: UserRole) => AuthResponse;
     deleteUserById: (userId: number) => void;
     updateUserRoleById: (userId: number, newRole: UserRole) => void;
-    updateUserDetails: (userId: number, updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>) => void;
+    updateUserDetails: (userId: number, updates: Partial<Omit<User, 'id' | 'createdAt'>>) => boolean;
     changeUserPassword: (currentPassword: string, newPassword: string) => boolean;
     activateAccount: (token: string) => AuthResponse;
     // Helper to get translated string
@@ -106,7 +117,6 @@ const createSong = (userId?: number): Song => ({
     updatedAt: new Date().toISOString()
 });
 
-const initialSong = createSong();
 
 // Helper to load songs from localStorage (filtered by userId)
 const loadLibraryFromStorage = (userId?: number): Song[] => {
@@ -139,8 +149,12 @@ const saveLibraryToStorage = (userSongs: Song[], userId: number) => {
 };
 
 export const useSongStore = create<SongState>((set, get) => ({
-    songs: [initialSong],
-    activeSongId: initialSong.id,
+    songs: [],
+    activeSongId: null,
+    allGlobalSongs: [],
+    isReadOnly: false,
+
+    setIsReadOnly: (isReadOnly) => set({ isReadOnly }),
 
     addSong: () => set((state) => {
         if (state.songs.length >= 4) return {};
@@ -359,11 +373,7 @@ export const useSongStore = create<SongState>((set, get) => ({
         }
     },
 
-    t: (key: string) => {
-        const state = get();
-        const lang = state.language;
-        return translations[lang]?.[key] || key;
-    },
+
 
     // Library implementation
     librarySongs: [], // Initialize empty, will be loaded on login
@@ -426,9 +436,9 @@ export const useSongStore = create<SongState>((set, get) => ({
     currentUser: null,
     users: [],
 
-    login: (email, password) => {
-        console.log('Store: Calling authenticateUser...', { email });
-        const result = userService.authenticateUser(email, password);
+    login: (identifier, password) => {
+        console.log('Store: Calling authenticateUser...', { identifier });
+        const result = userService.authenticateUser(identifier, password);
         console.log('Store: Authentication result', result);
         if (result.success && result.user) {
             set({
@@ -448,8 +458,8 @@ export const useSongStore = create<SongState>((set, get) => ({
         return result;
     },
 
-    register: (email, password) => {
-        const result = userService.createUser({ email, password, role: 'user' });
+    register: (email, username, password) => {
+        const result = userService.createUser({ email, username, password, role: 'user' });
         // Don't auto-login - user must activate account first
         return result;
     },
@@ -472,8 +482,8 @@ export const useSongStore = create<SongState>((set, get) => ({
         set({ users: allUsers });
     },
 
-    createUserAsAdmin: (email, password, role) => {
-        const result = userService.createUser({ email, password, role });
+    createUserAsAdmin: (email, username, password, role) => {
+        const result = userService.createUser({ email, username, password, role });
         if (result.success) {
             const allUsers = userService.getAllUsers();
             set({ users: allUsers });
@@ -501,8 +511,21 @@ export const useSongStore = create<SongState>((set, get) => ({
         const success = userService.updateUser(userId, updates);
         if (success) {
             const allUsers = userService.getAllUsers();
-            set({ users: allUsers });
+            const state = get();
+
+            const newState: any = { users: allUsers };
+
+            // If we updated the current user, sync the currentUser state as well
+            if (state.currentUser && state.currentUser.id === userId) {
+                const refreshedUser = userService.getUserById(userId);
+                if (refreshedUser) {
+                    newState.currentUser = refreshedUser;
+                }
+            }
+
+            set(newState);
         }
+        return success;
     },
 
     changeUserPassword: (currentPassword, newPassword) => {
@@ -521,4 +544,114 @@ export const useSongStore = create<SongState>((set, get) => ({
         const result = userService.activateUser(token);
         return result;
     },
+
+    fetchAllGlobalSongs: () => {
+        try {
+            const stored = localStorage.getItem('print_easy_tab_library');
+            const allSongs: Song[] = stored ? JSON.parse(stored) : [];
+            const users = userService.getAllUsers();
+
+            const globalSongs = allSongs.map(song => {
+                const creator = users.find(u => u.id === song.userId);
+                return {
+                    ...song,
+                    creatorName: creator ? (creator.username || creator.email.split('@')[0]) : 'Unknown'
+                };
+            });
+
+            set({ allGlobalSongs: globalSongs });
+        } catch (e) {
+            console.error('Failed to fetch global songs', e);
+        }
+    },
+
+    likeSong: (songId) => {
+        const state = get();
+        if (!state.currentUser) return;
+        const userId = state.currentUser.id;
+
+        try {
+            const stored = localStorage.getItem('print_easy_tab_library');
+            const allSongs: Song[] = stored ? JSON.parse(stored) : [];
+            const songIndex = allSongs.findIndex(s => s.id === songId);
+
+            if (songIndex !== -1) {
+                const song = allSongs[songIndex];
+                const likes = song.likes || [];
+                const alreadyLiked = likes.includes(userId);
+
+                if (alreadyLiked) {
+                    song.likes = likes.filter(id => id !== userId);
+                } else {
+                    song.likes = [...likes, userId];
+                }
+
+                localStorage.setItem('print_easy_tab_library', JSON.stringify(allSongs));
+
+                // Update local status if it's the active song
+                if (state.activeSongId === songId) {
+                    set(state => ({
+                        songs: state.songs.map(s => s.id === songId ? { ...s, likes: song.likes } : s)
+                    }));
+                }
+
+                // Refresh global library list
+                get().fetchAllGlobalSongs();
+            }
+        } catch (e) {
+            console.error('Failed to like song', e);
+        }
+    },
+
+    openSong: (song, readOnly) => {
+        const state = get();
+        const alreadyOpen = state.songs.find(s => s.id === song.id);
+
+        if (alreadyOpen) {
+            set({
+                activeSongId: song.id,
+                viewMode: 'editor',
+                isReadOnly: readOnly
+            });
+            return;
+        }
+
+        // Add if less than 4
+        if (state.songs.length < 4) {
+            set(state => ({
+                songs: [...state.songs, song],
+                activeSongId: song.id,
+                viewMode: 'editor',
+                isReadOnly: readOnly
+            }));
+        } else {
+            alert(state.t('library.limit_reached'));
+        }
+    },
+
+    t: (key) => {
+        const lang = (get().language || 'fr').toLowerCase() as string;
+        const allDicts = allTranslations as any;
+        const dict = allDicts[lang] || allDicts['fr'] || allDicts['en'] || {};
+
+        // Try flat first
+        if (dict[key]) return dict[key];
+
+        // Try split if it contains dots (for future proofing)
+        if (key.includes('.')) {
+            const keys = key.split('.');
+            let current = dict;
+            for (const k of keys) {
+                if (current && current[k]) {
+                    current = current[k];
+                } else {
+                    current = null;
+                    break;
+                }
+            }
+            if (typeof current === 'string') return current;
+        }
+
+        return key;
+    }
 }));

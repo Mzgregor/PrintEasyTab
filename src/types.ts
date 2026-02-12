@@ -35,9 +35,11 @@ export type Song = {
     artist: string;
     capo: number; // 0-10, 0 = no capo
     sections: Section[];
-    isFavorite?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
+    creatorName?: string;
+    likes?: number[]; // Array of user IDs who liked the song
+    isFavorite: boolean;
+    createdAt: string;
+    updatedAt: string;
 };
 
 // User Management Types
@@ -46,6 +48,7 @@ export type UserRole = 'user' | 'admin';
 export interface User {
     id: number;
     email: string;
+    username: string;
     role: UserRole;
     createdAt: string;
     lastLogin: string | null;
@@ -63,6 +66,7 @@ export interface AuthResponse {
 
 export interface CreateUserData {
     email: string;
+    username: string;
     password: string;
     role: UserRole;
 }

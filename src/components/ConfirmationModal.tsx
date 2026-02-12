@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, AlertTriangle, Trash2 } from 'lucide-react';
+import { X, AlertTriangle, Trash2, LogOut } from 'lucide-react';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -9,6 +9,7 @@ interface ConfirmationModalProps {
     onCancel: () => void;
     confirmText?: string;
     cancelText?: string;
+    variant?: 'danger' | 'warning';
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -18,9 +19,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     onConfirm,
     onCancel,
     confirmText = "Supprimer",
-    cancelText = "Annuler"
+    cancelText = "Annuler",
+    variant = 'danger'
 }) => {
     if (!isOpen) return null;
+
+    const isDanger = variant === 'danger';
 
     return (
         <>
@@ -33,7 +37,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {/* Modal */}
             <div className="fixed inset-0 z-[301] flex items-center justify-center p-6 pointer-events-none">
                 <div
-                    className="bg-bg-secondary border-2 border-red-500/30 rounded-[2rem] shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 fade-in duration-300 pointer-events-auto relative skeuo-card"
+                    className={`bg-bg-secondary border-2 ${isDanger ? 'border-red-500/30' : 'border-orange-500/30'} rounded-[2rem] shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 fade-in duration-300 pointer-events-auto relative skeuo-card`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Close Icon (Top-Right) */}
@@ -55,8 +59,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
                     {/* Warning Icon */}
                     <div className="flex justify-center mb-6">
-                        <div className="p-4 bg-red-500/10 rounded-full">
-                            <AlertTriangle size={48} className="text-red-500 animate-pulse" />
+                        <div className={`p-4 ${isDanger ? 'bg-red-500/10' : 'bg-orange-500/10'} rounded-full`}>
+                            <AlertTriangle size={48} className={isDanger ? 'text-red-500 animate-pulse' : 'text-orange-500'} />
                         </div>
                     </div>
 
@@ -80,9 +84,9 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                         </button>
                         <button
                             onClick={onConfirm}
-                            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-red-900/20 hover:bg-red-500 hover:scale-105 transition-all active:scale-95"
+                            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 ${isDanger ? 'bg-red-600 shadow-red-900/20 hover:bg-red-500' : 'bg-orange-600 shadow-orange-900/20 hover:bg-orange-500'} text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg transition-all active:scale-95 hover:scale-105`}
                         >
-                            <Trash2 size={16} />
+                            {isDanger ? <Trash2 size={16} /> : <LogOut size={16} />}
                             <span>{confirmText}</span>
                         </button>
                     </div>

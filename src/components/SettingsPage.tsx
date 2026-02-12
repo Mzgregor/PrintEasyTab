@@ -3,7 +3,10 @@ import { useSongStore } from '../store/useSongStore';
 import { Settings, User, Lock, LogOut, Shield, Save, ArrowLeft } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-    const { currentUser, logout, setViewMode, changeUserPassword, t, language } = useSongStore();
+    const { currentUser, logout, setViewMode, changeUserPassword, updateUserDetails, t, language } = useSongStore();
+    const [username, setUsername] = useState(currentUser?.username || '');
+    const [email, setEmail] = useState(currentUser?.email || '');
+    const [isEditingInfo, setIsEditingInfo] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -11,6 +14,46 @@ export const SettingsPage: React.FC = () => {
     const [error, setError] = useState('');
 
     const isAdmin = currentUser?.role === 'admin';
+
+    const handleSaveAllInfo = () => {
+        setMessage('');
+        setError('');
+
+        if (!username || !email) {
+            setError(t('common.fill_all'));
+            return;
+        }
+
+        if (currentUser) {
+            let success = true;
+
+            // Only update if values actually changed
+            if (username !== currentUser.username) {
+                const userSuccess = updateUserDetails(currentUser.id, { username });
+                if (!userSuccess) success = false;
+            }
+
+            if (email !== currentUser.email && success) {
+                const emailSuccess = updateUserDetails(currentUser.id, { email });
+                if (!emailSuccess) success = false;
+            }
+
+            if (success) {
+                setMessage(t('admin.saved'));
+                setIsEditingInfo(false);
+            } else {
+                setError(t('auth.error_update_failed') || 'Erreur lors de la mise à jour des informations. Le pseudo ou l\'email est peut-être déjà utilisé.');
+            }
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setUsername(currentUser?.username || '');
+        setEmail(currentUser?.email || '');
+        setIsEditingInfo(false);
+        setError('');
+        setMessage('');
+    };
 
     const handleChangePassword = () => {
         setMessage('');
@@ -85,37 +128,88 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* User Info Card */}
-                <div className="bg-bg-secondary border border-border-main rounded-2xl p-6 mb-6">
-                    <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-4 flex items-center gap-3">
+                <div className="bg-bg-secondary border border-border-main rounded-2xl p-6 mb-6 overflow-hidden relative">
+                    <h2 className="text-xl font-black uppercase tracking-wider text-text-primary mb-6 flex items-center gap-3">
                         <User size={24} className="text-accent" />
                         {t('settings.account_info')}
                     </h2>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between py-3 border-b border-border-main">
-                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.email')}</span>
-                            <span className="text-text-primary font-medium">{currentUser?.email}</span>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between py-4 border-b border-border-main/50">
+                            <span className="text-text-secondary font-bold uppercase text-xs tracking-widest">{t('settings.username')}</span>
+                            {isEditingInfo ? (
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="bg-bg-tertiary border border-border-main rounded-xl py-2 px-4 text-text-primary focus:outline-none focus:border-accent/50 text-sm w-64 shadow-inner"
+                                />
+                            ) : (
+                                <span className="text-text-primary font-black">{currentUser?.username}</span>
+                            )}
                         </div>
-                        <div className="flex items-center justify-between py-3 border-b border-border-main">
-                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.role')}</span>
+                        <div className="flex items-center justify-between py-4 border-b border-border-main/50">
+                            <span className="text-text-secondary font-bold uppercase text-xs tracking-widest">{t('settings.email')}</span>
+                            {isEditingInfo ? (
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="bg-bg-tertiary border border-border-main rounded-xl py-2 px-4 text-text-primary focus:outline-none focus:border-accent/50 text-sm w-64 shadow-inner"
+                                />
+                            ) : (
+                                <span className="text-text-primary font-black">{currentUser?.email}</span>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between py-4 border-b border-border-main/50">
+                            <span className="text-text-secondary font-bold uppercase text-xs tracking-widest">{t('settings.role')}</span>
                             <div className="flex items-center gap-2">
                                 {isAdmin ? (
                                     <>
-                                        <Shield size={16} className="text-accent" />
-                                        <span className="text-accent font-bold uppercase text-sm">{t('settings.admin')}</span>
+                                        <Shield size={14} className="text-accent" />
+                                        <span className="text-accent font-black uppercase text-xs tracking-tighter">{t('settings.admin')}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <User size={16} className="text-text-secondary" />
-                                        <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.user')}</span>
+                                        <User size={14} className="text-text-secondary" />
+                                        <span className="text-text-secondary font-black uppercase text-xs tracking-tighter">{t('settings.user')}</span>
                                     </>
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center justify-between py-3">
-                            <span className="text-text-secondary font-bold uppercase text-sm">{t('settings.member_since')}</span>
-                            <span className="text-text-primary font-medium">
+                        <div className="flex items-center justify-between py-4 mb-4">
+                            <span className="text-text-secondary font-bold uppercase text-xs tracking-widest">{t('settings.member_since')}</span>
+                            <span className="text-text-primary font-bold">
                                 {currentUser?.createdAt && new Date(currentUser.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                             </span>
+                        </div>
+
+                        {/* Control Buttons */}
+                        <div className="flex justify-start gap-4 mt-6 pt-6 border-t border-border-main/50">
+                            {isEditingInfo ? (
+                                <>
+                                    <button
+                                        onClick={handleSaveAllInfo}
+                                        className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-emerald-900/20 hover:bg-emerald-500 hover:scale-105 transition-all active:scale-95 animate-in slide-in-from-left-4"
+                                    >
+                                        <Save size={18} />
+                                        <span>Enregistrer</span>
+                                    </button>
+                                    <button
+                                        onClick={handleCancelEdit}
+                                        className="px-8 py-3 bg-bg-tertiary border border-border-main text-text-secondary rounded-xl font-black uppercase text-xs tracking-[0.2em] hover:bg-bg-primary hover:text-text-primary transition-all active:scale-95 animate-in slide-in-from-left-2"
+                                    >
+                                        <span>Annuler</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditingInfo(true)}
+                                    className="flex items-center gap-2 px-8 py-3 bg-accent text-white rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-accent/20 hover:bg-accent-light hover:scale-105 transition-all active:scale-95"
+                                >
+                                    <User size={18} />
+                                    <span>Modifier mes informations</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

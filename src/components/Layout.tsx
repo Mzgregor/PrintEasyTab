@@ -4,7 +4,7 @@ import { useSongStore } from '../store/useSongStore';
 import {
     Menu, X, User, Settings, FileText, LogOut, HelpCircle,
     Type, AlignLeft, AlignCenter, AlignRight,
-    Music, Guitar, Mic, Radio, Library
+    Music, Guitar, Mic, Radio, Library, ThumbsUp
 } from 'lucide-react';
 import { ConfigurationView } from './ConfigurationView';
 import { AdminPanel } from './AdminPanel';
@@ -24,15 +24,33 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
         globalLyricsFontSize, setGlobalLyricsFontSize,
         globalLyricsAlignment, setGlobalLyricsAlignment,
         setViewMode, viewMode,
+        isReadOnly, likeSong,
         logout, currentUser, t
     } = useSongStore();
 
     const currentSong = songs.find(s => s.id === activeSongId) || songs[0];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+                setIsProfileOpen(false);
+            }
+        };
+
+        if (isProfileOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isProfileOpen]);
 
     return (
         <div className="h-screen flex flex-col bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-accent selection:text-white relative">
@@ -239,8 +257,68 @@ export const Layout: React.FC<LayoutProps> = ({ editor, preview, pdfAction }) =>
                     </div>
                 </div>
 
-                {/* Right: Burger Menu Call to Action */}
-                <div className="flex justify-end items-center flex-1">
+                {/* Right: Burger Menu Call to Action & Like button in ReadOnly */}
+                <div className="flex justify-end items-center flex-1 gap-4">
+                    {isReadOnly && currentSong && (
+                        <div className="flex items-center gap-3 bg-bg-tertiary/60 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-accent/30 shadow-lg animate-in fade-in zoom-in duration-300">
+                            <button
+                                onClick={() => likeSong(currentSong.id)}
+                                className={`flex items-center gap-2 transition-all transform hover:scale-110 active:scale-95 ${currentSong.likes?.includes(currentUser?.id || 0) ? 'text-accent' : 'text-text-secondary hover:text-accent'}`}
+                            >
+                                <ThumbsUp size={24} fill={currentSong.likes?.includes(currentUser?.id || 0) ? "currentColor" : "none"} />
+                                <span className="text-lg font-black">{currentSong.likes?.length || 0}</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Profile Dropdown */}
+                    <div className="relative" ref={profileRef}>
+                        <button
+                            onClick={() => setIsProfileOpen(!isProfileOpen)}
+                            className={`btn-skeuo-dark p-0 rounded-2xl hover:text-accent transition-all duration-300 h-20 w-20 flex items-center justify-center border-2 border-border-main shadow-2xl hover:scale-110 active:scale-90 group ${isProfileOpen ? 'text-accent ring-2 ring-accent/30' : 'text-text-primary'}`}
+                            title="Mon Profil"
+                        >
+                            <User size={40} className="group-hover:scale-110 transition-transform" />
+                        </button>
+
+                        {isProfileOpen && (
+                            <div className="absolute top-24 right-0 w-64 bg-bg-secondary border-2 border-border-main rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] py-3 z-[110] animate-in fade-in zoom-in-95 duration-200 skeuo-card">
+                                <div className="px-6 py-4 mb-2 border-b border-border-main/50">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary mb-1">Connecté en tant que</p>
+                                    <p className="font-black text-accent truncate">{currentUser?.username || currentUser?.email}</p>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setViewMode('settings');
+                                        setIsProfileOpen(false);
+                                    }}
+                                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-bg-tertiary transition-colors group"
+                                >
+                                    <div className="p-2 bg-accent/10 rounded-xl group-hover:bg-accent group-hover:text-white transition-colors">
+                                        <User size={18} />
+                                    </div>
+                                    <span className="font-bold text-sm">Voir mon profil</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (confirm(t('settings.logout_confirm'))) {
+                                            logout();
+                                            setIsProfileOpen(false);
+                                        }
+                                    }}
+                                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-bg-tertiary transition-colors text-red-400 group"
+                                >
+                                    <div className="p-2 bg-red-400/10 rounded-xl group-hover:bg-red-400 group-hover:text-white transition-colors">
+                                        <LogOut size={18} />
+                                    </div>
+                                    <span className="font-bold text-sm">Se déconnecter</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => setIsMenuOpen(true)}
                         className="btn-skeuo-dark p-0 rounded-2xl hover:text-accent transition-all duration-300 text-text-primary h-20 w-20 flex items-center justify-center border-2 border-border-main shadow-2xl hover:scale-110 active:scale-90 group"

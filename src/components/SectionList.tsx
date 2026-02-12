@@ -13,7 +13,7 @@ interface Props {
 export const SectionList: React.FC<Props> = ({ songId }) => {
     // Select the specific song we are editing
     const song = useSongStore(state => state.songs.find(s => s.id === songId));
-    const { addSection, moveSection, t } = useSongStore();
+    const { addSection, moveSection, isReadOnly, t } = useSongStore();
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -25,6 +25,7 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
     if (!song) return null;
 
     const handleDragEnd = (event: DragEndEvent) => {
+        if (isReadOnly) return;
         const { active, over } = event;
         if (over && active.id !== over.id) {
             moveSection(songId, active.id as string, over.id as string);
@@ -61,25 +62,27 @@ export const SectionList: React.FC<Props> = ({ songId }) => {
             </DndContext>
 
             {/* Add Section Buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro', 'Solo'] as SectionType[]).map((type) => (
-                    <button
-                        key={type}
-                        onClick={() => addSection(songId, type)}
-                        data-type={type}
-                        className="btn-structure group"
-                    >
-                        <div className="flex items-center justify-center gap-2 relative z-10">
-                            <div className="plus-icon transition-colors">
-                                <Plus size={16} strokeWidth={3} />
+            {!isReadOnly && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {(['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro', 'Solo'] as SectionType[]).map((type) => (
+                        <button
+                            key={type}
+                            onClick={() => addSection(songId, type)}
+                            data-type={type}
+                            className="btn-structure group"
+                        >
+                            <div className="flex items-center justify-center gap-2 relative z-10">
+                                <div className="plus-icon transition-colors">
+                                    <Plus size={16} strokeWidth={3} />
+                                </div>
+                                <span className="text-[13px] font-bold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
+                                    {t(`section.${type.toLowerCase()}`)}
+                                </span>
                             </div>
-                            <span className="text-[13px] font-bold uppercase tracking-wider text-text-secondary group-hover:text-text-primary transition-colors">
-                                {t(`section.${type.toLowerCase()}`)}
-                            </span>
-                        </div>
-                    </button>
-                ))}
-            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

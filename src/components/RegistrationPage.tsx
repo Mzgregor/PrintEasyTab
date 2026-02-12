@@ -6,6 +6,7 @@ import { sendActivationEmail } from '../services/emailService';
 
 export const RegistrationPage: React.FC = () => {
     const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,11 @@ export const RegistrationPage: React.FC = () => {
         setError('');
 
         // Validation
+        if (!email || !username || !password || !confirmPassword) {
+            setError(t('common.fill_all'));
+            return;
+        }
+
         if (password !== confirmPassword) {
             setError(t('auth.error_password_match'));
             return;
@@ -34,7 +40,7 @@ export const RegistrationPage: React.FC = () => {
 
         // Mock registration delay for UX
         setTimeout(() => {
-            const result = register(email, password);
+            const result = register(email, username, password);
             setIsLoading(false);
 
             if (!result.success) {
@@ -93,6 +99,21 @@ export const RegistrationPage: React.FC = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t('auth.email_placeholder')}
+                                className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
+                                required
+                            />
+                        </div>
+
+                        {/* Username Input */}
+                        <div className="relative group/input">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within/input:text-accent transition-colors">
+                                <UserPlus size={20} />
+                            </div>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder={t('auth.username_placeholder')}
                                 className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
                                 required
                             />

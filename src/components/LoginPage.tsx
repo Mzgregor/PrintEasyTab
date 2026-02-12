@@ -3,7 +3,7 @@ import { useSongStore } from '../store/useSongStore';
 import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -13,7 +13,7 @@ export const LoginPage: React.FC = () => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('UI: Login button clicked', { email });
+        console.log('UI: Login button clicked', { identifier });
         setIsLoading(true);
         setError('');
 
@@ -21,7 +21,7 @@ export const LoginPage: React.FC = () => {
         setTimeout(() => {
             console.log('UI: Executing login from store...');
             setIsLoading(false);
-            const result = login(email, password);
+            const result = login(identifier, password);
             console.log('UI: Login result received', result);
             if (!result.success) {
                 setError(result.error || t('auth.error_login'));
@@ -59,16 +59,16 @@ export const LoginPage: React.FC = () => {
                     )}
 
                     <div className="space-y-4">
-                        {/* Email Input */}
+                        {/* Identifier Input */}
                         <div className="relative group/input">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within/input:text-accent transition-colors">
                                 <Mail size={20} />
                             </div>
                             <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder={t('auth.email_placeholder')}
+                                type="text"
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
+                                placeholder={t('auth.identifier_placeholder')}
                                 className="w-full bg-bg-tertiary border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/10 transition-all"
                                 required
                             />
