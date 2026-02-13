@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index }) => {
-    const { updateMeasure, removeMeasure, isReadOnly, t } = useSongStore();
+    const { updateMeasure, removeMeasure, isReadOnly, t, chordInstrument } = useSongStore();
 
     // Local state for formatted text representation (e.g. "C Am7")
     const [text, setText] = useState('');
@@ -88,7 +88,7 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
         }
 
         setIsPlaying(true);
-        playChord(text);
+        playChord(text, chordInstrument); // Use selected instrument
 
         // Reset playing state after 2 seconds
         setTimeout(() => {

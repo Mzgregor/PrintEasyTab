@@ -3,6 +3,9 @@
  * Parses chord names and synthesizes audio using Web Audio API
  */
 
+// Instrument types for chord playback
+export type ChordInstrument = 'acoustic-guitar' | 'piano';
+
 // Note frequencies in Hz (A4 = 440Hz standard tuning)
 const NOTE_FREQUENCIES: Record<string, number> = {
     'C': 261.63,
@@ -100,14 +103,95 @@ function getChordFrequencies(chordName: string): number[] {
 }
 
 /**
- * Create a guitar-like voice for a single frequency
- * Reuses the technique from GuitarTuner.tsx
+ * Create an acoustic guitar voice for a single frequency
+ * Warm, natural sound with percussive attack and quick decay
  */
-function createGuitarVoice(
+/**
+ * Create a nylon string acoustic guitar voice for a single frequency
+ * Warm, mellow sound with soft attack and rich lower harmonics
+ */
+/**
+ * Create a classical guitar voice (Nylon) for a single frequency
+ * DISTINCT PLUCK, WOODEN BODY RESONANCE, WARMTH
+ */
+function createAcousticGuitarVoice(
     ctx: AudioContext,
     freq: number,
     now: number,
-    duration: number = 2.0
+    duration: number = 3.5
+): void {
+    const createPart = (
+        f: number,
+        gainVal: number,
+        decay: number,
+        type: OscillatorType = 'sine',
+        detune: number = 0
+    ) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(f, now);
+        if (detune !== 0) osc.detune.setValueAtTime(detune, now);
+
+        // DISTINCT PLUCK ENVELOPE (Fingernail on Nylon)
+        g.gain.setValueAtTime(0, now);
+        // Very fast attack for the initial "tick" of the nail against string
+        g.gain.linearRampToValueAtTime(gainVal, now + 0.002);
+        // Quick decay to sustain level (the "pluck" transient)
+        g.gain.exponentialRampToValueAtTime(gainVal * 0.6, now + 0.04);
+        // Long, warm sustain with slow exponential decay
+        g.gain.exponentialRampToValueAtTime(0.001, now + decay);
+
+        osc.connect(g);
+        g.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + decay + 0.1);
+    };
+
+    // 1. FUNDAMENTAL (The core note) - Warm sine
+    createPart(freq, 0.45, duration, 'sine');
+
+    // 2. BODY RESONANCE (The wooden box) - Low warmth
+    // A slightly detuned sine at fundamental adds "wood" character
+    createPart(freq, 0.15, duration * 0.8, 'sine', 2);
+    createPart(freq, 0.15, duration * 0.8, 'sine', -2);
+
+    // 3. THE PLUCK (Transient harmonics)
+    // Stronger upper harmonics that decay faster = clearer attack
+    createPart(freq * 2, 0.25, duration * 0.7, 'sine'); // Octave
+    createPart(freq * 3, 0.15, duration * 0.5, 'sine'); // Fifth
+    createPart(freq * 4, 0.05, duration * 0.3, 'triangle'); // Double octave (Triangle for bite)
+
+    // 4. "FINGER NOISE" / TRANSIENT
+    // High frequency burst for the nail hitting the string
+    const noiseOsc = ctx.createOscillator();
+    const noiseGain = ctx.createGain();
+    noiseOsc.type = 'triangle';
+    noiseOsc.frequency.setValueAtTime(freq * 8, now); // High pitched transient
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.03, now + 0.001);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03); // Very short
+    noiseOsc.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseOsc.start(now);
+    noiseOsc.stop(now + 0.05);
+}
+
+/**
+ * Create a piano voice for a single frequency
+ * Rich sound with harmonics and longer sustain
+ */
+/**
+ * Create a piano voice (using the previous "Nylon Guitar" profile per user request)
+ * The user preferred the warm, mellow sound for the piano.
+ */
+function createPianoVoice(
+    ctx: AudioContext,
+    freq: number,
+    now: number,
+    duration: number = 2.5
 ): void {
     const createPart = (
         f: number,
@@ -121,9 +205,10 @@ function createGuitarVoice(
         osc.type = type;
         osc.frequency.setValueAtTime(f, now);
 
-        // ADSR envelope
+        // PREVIOUS NYLON ENVELOPE (Now used for Piano)
+        // Softer attack (0.02s) acts like a felt hammer
         g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(gainVal, now + 0.01);
+        g.gain.linearRampToValueAtTime(gainVal, now + 0.02);
         g.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
         osc.connect(g);
@@ -133,17 +218,22 @@ function createGuitarVoice(
         osc.stop(now + decay + 0.1);
     };
 
-    // Fundamental + harmonics for rich guitar-like sound
-    createPart(freq, 0.35, duration);           // Fundamental
-    createPart(freq * 2, 0.12, duration * 0.7); // 2nd harmonic
-    createPart(freq * 3, 0.06, duration * 0.4); // 3rd harmonic
-    createPart(freq * 4, 0.03, duration * 0.2, 'triangle'); // 4th harmonic
+    // Harmonics from previous "Nylon Guitar" (Now Piano)
+    // This creates a very warm, intimate piano sound ("Felt Piano")
+    createPart(freq, 0.4, duration);
+    createPart(freq * 2, 0.2, duration * 0.85);
+    createPart(freq * 3, 0.1, duration * 0.7);
+    createPart(freq * 4, 0.02, duration * 0.5);
+    createPart(freq * 5, 0.01, duration * 0.3);
 }
 
 /**
  * Play a chord by synthesizing all its notes
  */
-export function playChord(chordName: string): void {
+export function playChord(
+    chordName: string,
+    instrument: ChordInstrument = 'acoustic-guitar'
+): void {
     if (!chordName || chordName.trim() === '' || chordName === '-') {
         console.warn('Cannot play empty or invalid chord');
         return;
@@ -167,9 +257,29 @@ export function playChord(chordName: string): void {
 
         const now = ctx.currentTime;
 
-        // Play each note in the chord simultaneously
-        frequencies.forEach(freq => {
-            createGuitarVoice(ctx, freq, now, 2.0);
+        // Play each note in the chord
+        // Sort frequencies low to high for natural down-stroke strum
+        const sortedFrequencies = [...frequencies].sort((a, b) => a - b);
+
+        sortedFrequencies.forEach((freq, index) => {
+            if (instrument === 'acoustic-guitar') {
+                // ENHANCED CLASSICAL GUITAR STRUMMING
+                // Classical arpeggios are very distinct. 
+                // 60ms delay between strings gives a clear, articulated "rolled" chord.
+                const strumDelay = 0.06;
+                const noteStartTime = now + (index * strumDelay);
+
+                // Longer duration for classical guitar resonance
+                // Varying duration slightly adds human feel
+                const varyDuration = 3.5 + Math.random() * 0.5;
+
+                createAcousticGuitarVoice(ctx, freq, noteStartTime, varyDuration);
+            } else {
+                // PIANO (using previous Nylon profile): 
+                // Slight flam (5ms) makes the chord sound less robotic/MIDI-like
+                const flam = index * 0.005;
+                createPianoVoice(ctx, freq, now + flam, 3.0);
+            }
         });
 
         // Cleanup: close context after sound finishes
@@ -177,7 +287,7 @@ export function playChord(chordName: string): void {
             if (ctx.state !== 'closed') {
                 ctx.close();
             }
-        }, 2500);
+        }, 4000); // Extended timeout for longer sustain
 
     } catch (error) {
         console.error('Error playing chord:', error);

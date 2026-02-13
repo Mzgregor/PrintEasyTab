@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { Song, Section, SectionType, Measure, ChordBlock, User, AuthResponse, UserRole } from '../types';
+import type { ChordInstrument } from '../utils/chordAudio';
 import * as userService from '../services/userService';
 import * as translationsModule from '../translations';
 
@@ -42,6 +43,10 @@ interface SongState {
 
     language: 'fr' | 'en';
     setLanguage: (lang: 'fr' | 'en') => void;
+
+    // Chord Instrument
+    chordInstrument: ChordInstrument;
+    setChordInstrument: (instrument: ChordInstrument) => void;
 
     // Global Lyrics Settings
     globalLyricsFontSize: number;
@@ -377,6 +382,13 @@ export const useSongStore = create<SongState>((set, get) => ({
         } else {
             set({ language });
         }
+    },
+
+    // Chord Instrument implementation
+    chordInstrument: (localStorage.getItem('printeasy_chord_instrument') as ChordInstrument) || 'acoustic-guitar',
+    setChordInstrument: (chordInstrument) => {
+        localStorage.setItem('printeasy_chord_instrument', chordInstrument);
+        set({ chordInstrument });
     },
 
 

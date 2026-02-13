@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSongStore } from '../store/useSongStore';
-import { Plus, Minus, Save, Heart, ThumbsUp, User } from 'lucide-react';
+import { Plus, Minus, Save, Heart, ThumbsUp, User, Volume2 } from 'lucide-react';
+import { InstrumentSelectorModal } from './InstrumentSelectorModal';
 
 interface Props {
     songId: string;
@@ -8,8 +9,9 @@ interface Props {
 
 export const SongMetadata: React.FC<Props> = ({ songId }) => {
     const song = useSongStore(state => state.songs.find(s => s.id === songId));
-    const { setTitle, setArtist, setCapo, saveSong, toggleFavorite, likeSong, currentUser, isReadOnly, t } = useSongStore();
+    const { setTitle, setArtist, setCapo, saveSong, toggleFavorite, likeSong, currentUser, isReadOnly, t, chordInstrument, setChordInstrument } = useSongStore();
     const [savedMessage, setSavedMessage] = React.useState(false);
+    const [showInstrumentSelector, setShowInstrumentSelector] = React.useState(false);
 
     if (!song) return null;
 
@@ -130,13 +132,25 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                     )}
 
                     {!isReadOnly && (
-                        <button
-                            onClick={handleSave}
-                            className="ios-primary-btn flex items-center gap-2 !px-5 !h-[46px] whitespace-nowrap shadow-lg shadow-blue-500/20"
-                        >
-                            <Save size={18} />
-                            <span>{t('metadata.save')}</span>
-                        </button>
+                        <>
+                            {/* Instrument Selector Button */}
+                            <button
+                                onClick={() => setShowInstrumentSelector(true)}
+                                className="ios-btn-icon !w-[46px] !h-[46px] text-text-secondary hover:text-accent hover:bg-accent/10 transition-all"
+                                title={t('settings.instrument')}
+                            >
+                                <Volume2 size={20} strokeWidth={2.5} />
+                            </button>
+
+                            {/* Save Button */}
+                            <button
+                                onClick={handleSave}
+                                className="ios-primary-btn flex items-center gap-2 !px-5 !h-[46px] whitespace-nowrap shadow-lg shadow-blue-500/20"
+                            >
+                                <Save size={18} />
+                                <span>{t('metadata.save')}</span>
+                            </button>
+                        </>
                     )}
 
                     {savedMessage && (
@@ -147,6 +161,17 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                     )}
                 </div>
             </div>
+
+            {/* Instrument Selector Modal */}
+            <InstrumentSelectorModal
+                isOpen={showInstrumentSelector}
+                onClose={() => setShowInstrumentSelector(false)}
+                currentInstrument={chordInstrument}
+                onSelectInstrument={(instrument) => {
+                    setChordInstrument(instrument);
+                    setShowInstrumentSelector(false);
+                }}
+            />
         </div>
     );
 };
