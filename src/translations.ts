@@ -176,6 +176,17 @@ export const translations: Record<string, Record<string, string>> = {
         'metronome.shaker': 'Shaker',
         'metronome.description': 'Parfait pour la pratique. Précision rythmique via Web Audio.',
 
+        // Chord Selector
+        'chord.select_base': 'Choisissez une note',
+        'chord.select_variant': 'Choisissez une variante',
+        'chord.current': 'Accord actuel',
+        'chord.category.basic': 'Majeur & Mineur',
+        'chord.category.power': 'Power Chord',
+        'chord.category.seventh': 'Accords 7e',
+        'chord.category.suspended': 'Accords Suspendus',
+        'chord.category.sixth': 'Accords 6e',
+        'chord.category.extended': 'Accords Enrichis',
+
         // Admin
         'admin.title': 'Panneau d\'Administration',
         'admin.subtitle': 'Gestion des utilisateurs et des permissions',
@@ -399,6 +410,17 @@ export const translations: Record<string, Record<string, string>> = {
         'metronome.clap': 'Clap',
         'metronome.shaker': 'Shaker',
         'metronome.description': 'Perfect for practice. Precision timing powered by Web Audio.',
+
+        // Chord Selector
+        'chord.select_base': 'Select a note',
+        'chord.select_variant': 'Select a variant',
+        'chord.current': 'Current chord',
+        'chord.category.basic': 'Major & Minor',
+        'chord.category.power': 'Power Chord',
+        'chord.category.seventh': '7th Chords',
+        'chord.category.suspended': 'Suspended Chords',
+        'chord.category.sixth': '6th Chords',
+        'chord.category.extended': 'Extended Chords',
 
         // Admin
         'admin.title': 'Admin Panel',
