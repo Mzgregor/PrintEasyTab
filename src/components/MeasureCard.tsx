@@ -3,6 +3,8 @@ import type { Measure, ChordBlock } from '../types';
 import { useSongStore } from '../store/useSongStore';
 import { v4 as uuidv4 } from 'uuid';
 import { ChordSelector } from './ChordSelector';
+import { Play, Volume2 } from 'lucide-react';
+import { playChord, isValidChord } from '../utils/chordAudio';
 
 interface Props {
     songId: string;
@@ -17,6 +19,7 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
     // Local state for formatted text representation (e.g. "C Am7")
     const [text, setText] = useState('');
     const [showChordSelector, setShowChordSelector] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     // Get song mode to determine if we're in chords mode
     const songMode = useSongStore((state: any) => state.songs.find((s: any) => s.id === songId)?.mode);
@@ -76,10 +79,30 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
         }
     };
 
+    // Handle play chord audio
+    const handlePlayChord = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!text || isPlaying || !isValidChord(text)) {
+            return;
+        }
+
+        setIsPlaying(true);
+        playChord(text);
+
+        // Reset playing state after 2 seconds
+        setTimeout(() => {
+            setIsPlaying(false);
+        }, 2000);
+    };
+
+    // Check if measure has a valid chord
+    const hasValidChord = text && text.trim() !== '' && text !== '-' && isValidChord(text);
+
     return (
         <>
             <div
-                className={`relative aspect-[4/3] skeuo-inset group transition-all duration-300 ${isReadOnly ? 'opacity-90' : ''} ${isChordsMode && !isReadOnly ? 'cursor-pointer hover:border-accent' : ''}`}
+                className={`relative aspect-[4/3] skeuo-inset group transition-all duration-300 ${isReadOnly ? 'opacity-90' : ''} ${isChordsMode && !isReadOnly ? 'cursor-pointer hover:border-accent' : ''} ${isPlaying ? 'border-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]' : ''}`}
                 onClick={handleMeasureClick}
             >
                 <span className="absolute top-1.5 left-2.5 text-[9px] text-text-secondary select-none font-black uppercase tracking-widest opacity-40">
@@ -99,6 +122,26 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
                             <path d="M18 6 6 18" />
                             <path d="m6 6 12 12" />
                         </svg>
+                    </button>
+                )}
+
+                {/* Play Button - appears when measure has a valid chord */}
+                {hasValidChord && (
+                    <button
+                        onClick={handlePlayChord}
+                        disabled={isPlaying}
+                        className={`absolute bottom-1 left-1 transition-all duration-200 p-2 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10
+                            ${isPlaying
+                                ? 'text-accent bg-accent/20 opacity-100 animate-pulse border border-accent/50'
+                                : 'text-text-secondary hover:text-accent hover:bg-accent/10 opacity-0 group-hover:opacity-100 bg-black/30'
+                            }`}
+                        title={isPlaying ? t('measure.playing') : t('measure.play')}
+                    >
+                        {isPlaying ? (
+                            <Volume2 size={14} fill="currentColor" />
+                        ) : (
+                            <Play size={14} fill="currentColor" />
+                        )}
                     </button>
                 )}
 
