@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Guitar, Music, Mic, Square } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
-import { playNote } from '../utils/audioEngine';
+import { playNote } from '../utils/soundfontAudio';
 
 const STRINGS = [
     { note: 'E', freq: 82.41, label: 'Low E', number: 6 },

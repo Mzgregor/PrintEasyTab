@@ -1,8 +1,8 @@
 /**
  * Chord Audio Synthesis Utility
- * Parses chord names and synthesizes audio using Web Audio API
+ * Parses chord names and synthesizes audio using SoundFont
  */
-import { playNote } from './audioEngine';
+import { playNote } from './soundfontAudio';
 
 // Instrument types for chord playback
 export type ChordInstrument = 'acoustic-guitar' | 'electric-guitar' | 'piano' | '12-string-acoustic';
