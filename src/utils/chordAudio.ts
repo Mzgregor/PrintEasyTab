@@ -103,72 +103,79 @@ function getChordFrequencies(chordName: string): number[] {
     );
 }
 
+let audioContext: AudioContext | null = null;
+
 /**
- * Play a chord by synthesizing all its notes
+ * Play a chord by name
+ * @param chordName - Chord name (e.g., 'C', 'Am', 'G7')
+ * @param instrument - Instrument type
+ * @param capo - Capo position (0-10), transposes the chord up by N semitones
  */
-export function playChord(
-    chordName: string,
-    instrument: ChordInstrument = 'acoustic-guitar'
-): void {
+export const playChord = (chordName: string, instrument: ChordInstrument = 'acoustic-guitar', capo: number = 0): void => {
     if (!chordName || chordName.trim() === '' || chordName === '-') {
         console.warn('Cannot play empty or invalid chord');
         return;
     }
 
     const frequencies = getChordFrequencies(chordName);
-
     if (frequencies.length === 0) {
-        console.warn(`Could not parse chord: ${chordName}`);
+        console.warn(`Unknown chord: ${chordName}`);
         return;
     }
 
-    try {
-        // Create or reuse AudioContext
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-        // Resume if suspended (browser autoplay policy)
-        if (ctx.state === 'suspended') {
-            ctx.resume();
-        }
-
-        const now = ctx.currentTime;
-
-        // Play each note in the chord
-        // Sort frequencies low to high for natural down-stroke strum
-        const sortedFrequencies = [...frequencies].sort((a, b) => a - b);
-
-        sortedFrequencies.forEach((freq, index) => {
-            if (instrument === 'acoustic-guitar') {
-                // ENHANCED CLASSICAL GUITAR STRUMMING
-                // Classical arpeggios are very distinct. 
-                // 80ms delay gives a more "sweeping" feel like Stairway intro
-                const strumDelay = 0.08;
-                const noteStartTime = now + (index * strumDelay);
-
-                // Longer duration for resonance (letting notes ring out)
-                // Varying duration slightly adds human feel
-                const varyDuration = 4.5 + Math.random() * 0.8;
-
-                playNote(ctx, 'acoustic-guitar', freq, noteStartTime, varyDuration);
-            } else {
-                // GRAND PIANO ARPEGGIO
-                // "Note per note" effect as requested (40ms spacing)
-                const arpeggioDelay = 0.04;
-                playNote(ctx, 'piano', freq, now + (index * arpeggioDelay), 3.0);
-            }
-        });
-
-        // Cleanup: close context after sound finishes
-        setTimeout(() => {
-            if (ctx.state !== 'closed') {
-                ctx.close();
-            }
-        }, 4000); // Extended timeout for longer sustain
-
-    } catch (error) {
-        console.error('Error playing chord:', error);
+    // Create or resume AudioContext
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
-}
+
+    const ctx = audioContext;
+
+    if (ctx.state === 'suspended') {
+        ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+
+    // Play each note in the chord
+    // Sort frequencies low to high for natural down-stroke strum
+    const sortedFrequencies = [...frequencies].sort((a, b) => a - b);
+
+    sortedFrequencies.forEach((freq, index) => {
+        if (instrument === 'acoustic-guitar') {
+            // ENHANCED CLASSICAL GUITAR STRUMMING
+            // Classical arpeggios are very distinct. 
+            // 80ms delay gives a more "sweeping" feel like Stairway intro
+            const strumDelay = 0.08;
+            const noteStartTime = now + (index * strumDelay);
+
+            // Longer duration for resonance (letting notes ring out)
+            // Varying duration slightly adds human feel
+            const varyDuration = 4.5 + Math.random() * 0.8;
+
+            playNote(ctx, 'acoustic-guitar', freq, noteStartTime, varyDuration, capo);
+        } else if (instrument === 'electric-guitar') {
+            // Electric guitar strumming
+            const strumDelay = 0.06;
+            const noteStartTime = now + (index * strumDelay);
+            const varyDuration = 3.5 + Math.random() * 0.5;
+
+            playNote(ctx, 'electric-guitar', freq, noteStartTime, varyDuration, capo);
+        } else if (instrument === '12-string-acoustic') {
+            // 12-string guitar strumming
+            const strumDelay = 0.08;
+            const noteStartTime = now + (index * strumDelay);
+            const varyDuration = 5.0 + Math.random() * 0.8;
+
+            playNote(ctx, '12-string-acoustic', freq, noteStartTime, varyDuration, capo);
+        } else {
+            // GRAND PIANO ARPEGGIO
+            // "Note per note" effect as requested (40ms spacing)
+            const arpeggioDelay = 0.04;
+            playNote(ctx, 'piano', freq, now + (index * arpeggioDelay), 3.0, capo);
+        }
+    });
+
+};
 
 /**
  * Check if a chord name is valid

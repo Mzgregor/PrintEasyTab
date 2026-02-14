@@ -96,20 +96,30 @@ const loadInstrument = async (instrumentType: InstrumentType): Promise<any> => {
 
 /**
  * Play a single note using SoundFont
+ * @param ctx AudioContext
+ * @param instrumentType Instrument to use
+ * @param freq Frequency in Hz
+ * @param _now Unused (for compatibility)
+ * @param duration Duration in seconds
+ * @param capo Capo position (0-10), transposes notes up by N semitones
  */
 export const playNote = async (
     ctx: AudioContext,
     instrumentType: InstrumentType,
     freq: number,
     _now: number = 0,
-    duration: number = 0.5
+    duration: number = 0.5,
+    capo: number = 0
 ): Promise<void> => {
     try {
         // Load instrument
         const instrument = await loadInstrument(instrumentType);
 
         // Convert frequency to MIDI note
-        const midiNote = Math.round(69 + 12 * Math.log2(freq / 440));
+        let midiNote = Math.round(69 + 12 * Math.log2(freq / 440));
+
+        // Apply capo transposition
+        midiNote += capo;
 
         // Play note
         const audioNode = instrument.play(midiNote, ctx.currentTime, {

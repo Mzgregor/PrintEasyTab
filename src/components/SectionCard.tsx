@@ -27,7 +27,19 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
         transition,
     };
 
-    const { removeSection, duplicateSection, updateSection, addMeasure, isReadOnly, t, chordInstrument } = useSongStore();
+    const {
+        removeSection,
+        duplicateSection,
+        updateSection,
+        addMeasure,
+        isReadOnly,
+        t,
+        chordInstrument,
+        songs
+    } = useSongStore();
+
+    const song = songs.find(s => s.id === songId);
+    if (!song) return null;
     const { globalLyricsFontSize, globalLyricsAlignment, theme } = useSongStore();
     const songMode = useSongStore((state: any) => state.songs.find((s: any) => s.id === songId)?.mode);
     const isChordsMode = songMode === 'chords';
@@ -91,7 +103,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                             // Check if still playing globally is hard inside here without ref, but `playChord` is fire-and-forget.
                             // To avoid noise if stopped, we could use a ref check.
                             if (playbackRef.current) { // coarse check
-                                playChord(chord.text, chordInstrument);
+                                playChord(chord.text, chordInstrument, song.capo || 0);
                             }
                         }, i * durationPerChord);
                     }

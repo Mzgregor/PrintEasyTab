@@ -15,7 +15,10 @@ interface Props {
 }
 
 export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index, isHighlighted = false }) => {
-    const { updateMeasure, removeMeasure, isReadOnly, t, chordInstrument } = useSongStore();
+    const { updateMeasure, removeMeasure, isReadOnly, t, chordInstrument, songs } = useSongStore();
+
+    const song = songs.find(s => s.id === songId);
+    const capo = song?.capo || 0;
 
     // Local state for formatted text representation (e.g. "C Am7")
     const [text, setText] = useState('');
