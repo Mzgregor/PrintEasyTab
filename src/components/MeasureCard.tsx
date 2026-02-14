@@ -11,9 +11,10 @@ interface Props {
     sectionId: string;
     measure: Measure;
     index: number;
+    isHighlighted?: boolean;
 }
 
-export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index }) => {
+export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index, isHighlighted = false }) => {
     const { updateMeasure, removeMeasure, isReadOnly, t, chordInstrument } = useSongStore();
 
     // Local state for formatted text representation (e.g. "C Am7")
@@ -102,7 +103,13 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
     return (
         <>
             <div
-                className={`relative aspect-[4/3] skeuo-inset group transition-all duration-300 ${isReadOnly ? 'opacity-90' : ''} ${isChordsMode && !isReadOnly ? 'cursor-pointer hover:border-accent' : ''} ${isPlaying ? 'border-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]' : ''}`}
+                className={`relative aspect-[4/3] skeuo-inset group transition-all duration-300 ${isReadOnly ? 'opacity-90' : ''} ${isChordsMode && !isReadOnly ? 'cursor-pointer hover:border-accent' : ''}`}
+                style={isPlaying || isHighlighted ? {
+                    borderColor: 'var(--accent)',
+                    boxShadow: '0 0 20px rgba(var(--accent-rgb), 0.5), inset 0 0 10px rgba(var(--accent-rgb), 0.2)',
+                    transform: 'scale(1.02)',
+                    zIndex: 10
+                } : {}}
                 onClick={handleMeasureClick}
             >
                 <span className="absolute top-1.5 left-2.5 text-[9px] text-text-secondary select-none font-black uppercase tracking-widest opacity-40">

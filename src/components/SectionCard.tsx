@@ -1,10 +1,12 @@
+import { useState, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Copy, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Highlighter, Type as TypeIcon, Palette } from 'lucide-react';
+import { GripVertical, Trash2, Copy, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Highlighter, Type as TypeIcon, Palette, Play, Square } from 'lucide-react';
 import type { Section } from '../types';
 import { useSongStore } from '../store/useSongStore';
 import { MeasureCard } from './MeasureCard';
 import { Plus } from 'lucide-react';
+import { playChord, isValidChord } from '../utils/chordAudio';
 
 interface Props {
     songId: string;
@@ -25,9 +27,87 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
         transition,
     };
 
-    const { removeSection, duplicateSection, updateSection, addMeasure, isReadOnly, t } = useSongStore();
+    const { removeSection, duplicateSection, updateSection, addMeasure, isReadOnly, t, chordInstrument } = useSongStore();
     const { globalLyricsFontSize, globalLyricsAlignment, theme } = useSongStore();
     const songMode = useSongStore((state: any) => state.songs.find((s: any) => s.id === songId)?.mode);
+    const isChordsMode = songMode === 'chords';
+
+    // Playback State
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [playingMeasureIndex, setPlayingMeasureIndex] = useState<number | null>(null);
+    const playbackRef = useRef<any>(null);
+
+    const handlePlayStructure = () => {
+        if (isPlaying) {
+            // Stop logic
+            if (playbackRef.current) clearTimeout(playbackRef.current);
+            setIsPlaying(false);
+            setPlayingMeasureIndex(null);
+            return;
+        }
+
+        setIsPlaying(true);
+        let currentIndex = 0;
+        const measures = section.measures;
+        const BPM = 90;
+        const MS_PER_BEAT = 60000 / BPM;
+        const BEATS_PER_MEASURE = 4; // Default to 4/4
+        const MEASURE_DURATION = MS_PER_BEAT * BEATS_PER_MEASURE;
+
+        const playNext = () => {
+            if (currentIndex >= measures.length) {
+                setIsPlaying(false);
+                setPlayingMeasureIndex(null);
+                return;
+            }
+
+            setPlayingMeasureIndex(currentIndex);
+
+            // Audio Playback
+            const measure = measures[currentIndex];
+            // Play first valid chord or all chords in measure? 
+            // Request says: "lancer le son de l'accord défini à l'intérieur"
+            // "Les accords sont entendus les uns après les autres" - sounds like one chord per measure or all chords?
+            // "Play chord of the measure" singular implies the main chord or sequential?
+            // Implementation Plan said: "Iterate through section.measures... Play the chord"
+            // Let's play the chords in the measure. If multiple, we might need a sub-loop or just play the first/main one for now as per "l'accord" (singular) in prompt, 
+            // OR if the measure has multiple chords, we should probably schedule them?
+            // The prompt says "hearing the sound of the chords I entered in my cell measures"... "played one after another".
+            // If a measure has "C G", do we play C then G within the measure duration?
+            // For simplicity and "visual repair", let's play the chords in the measure sequentially or just the first one if simpler.
+            // Given "Vitesse de lecture est de 90 BPM" and "Measure duration", let's try to play the chords in the measure.
+            // If there are multiple chords, we divide the measure duration.
+
+            if (measure.chords && measure.chords.length > 0) {
+                const chordCount = measure.chords.length;
+                const durationPerChord = MEASURE_DURATION / chordCount;
+
+                measure.chords.forEach((chord, i) => {
+                    if (isValidChord(chord.text)) {
+                        setTimeout(() => {
+                            // Only play if still playing this measure (handling stop is tricky with timeouts, but this is short term)
+                            // Better: Use AudioContext scheduling, but we are using `playChord` which plays immediately.
+                            // We'll just schedule timeouts relative to start of measure.
+                            // Check if still playing globally is hard inside here without ref, but `playChord` is fire-and-forget.
+                            // To avoid noise if stopped, we could use a ref check.
+                            if (playbackRef.current) { // coarse check
+                                playChord(chord.text, chordInstrument);
+                            }
+                        }, i * durationPerChord);
+                    }
+                });
+            }
+
+            playbackRef.current = setTimeout(() => {
+                currentIndex++;
+                playNext();
+            }, MEASURE_DURATION);
+        };
+
+        playNext();
+    };
+
+    // Dynamic color fallback based on theme
 
     // Dynamic color fallback based on theme
     const defaultColor = theme === 'light' ? '#1f2937' : '#ffffff';
@@ -186,6 +266,15 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {!isReadOnly && (
                         <>
+                            {isChordsMode && (
+                                <button
+                                    onClick={handlePlayStructure}
+                                    className={`btn-skeuo-dark p-2 transition-all ${isPlaying ? 'text-accent border-accent/50' : 'hover:text-accent'}`}
+                                    title={isPlaying ? "Arrêter la lecture" : "Écouter la structure"}
+                                >
+                                    {isPlaying ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+                                </button>
+                            )}
                             <button
                                 onClick={() => duplicateSection(songId, section.id)}
                                 className="btn-skeuo-dark p-2"
@@ -233,6 +322,7 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                                     sectionId={section.id}
                                     measure={measure}
                                     index={index}
+                                    isHighlighted={index === playingMeasureIndex}
                                 />
                             </div>
                         ))}
