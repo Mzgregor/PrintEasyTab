@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Guitar, Music, Mic, Square } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
+import { playNote } from '../utils/audioEngine';
 
 const STRINGS = [
     { note: 'E', freq: 82.41, label: 'Low E', number: 6 },
@@ -40,195 +41,15 @@ export const GuitarTuner: React.FC = () => {
         setActiveString(null);
     };
 
-    const transients = useRef<{ pluck: AudioBuffer | null, hammer: AudioBuffer | null, breath: AudioBuffer | null }>({
-        pluck: null, hammer: null, breath: null
-    });
-
-    useEffect(() => {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-        const generateBuffer = (length: number, type: 'noise' | 'percussive' | 'breath') => {
-            const buffer = ctx.createBuffer(1, ctx.sampleRate * length, ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < data.length; i++) {
-                if (type === 'noise') data[i] = (Math.random() * 2 - 1) * 0.5;
-                else if (type === 'percussive') data[i] = (Math.random() * 2 - 1) * Math.exp(-i * 0.01);
-                else if (type === 'breath') data[i] = (Math.random() * 2 - 1) * 0.2;
-            }
-            return buffer;
-        };
-
-        transients.current.pluck = generateBuffer(0.1, 'noise');
-        transients.current.hammer = generateBuffer(0.1, 'percussive');
-        transients.current.breath = generateBuffer(0.4, 'breath');
-
-        return () => {
-            if (ctx.state !== 'closed') ctx.close();
-        };
-    }, []);
-
-    const createGuitarVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const duration = 3.5;
-        const createPart = (f: number, gainVal: number, decay: number, type: OscillatorType = 'sine') => {
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(f, now);
-            g.gain.setValueAtTime(0, now);
-            g.gain.linearRampToValueAtTime(gainVal, now + 0.01);
-            g.gain.exponentialRampToValueAtTime(0.001, now + decay);
-            osc.connect(g);
-            g.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + decay + 0.1);
-            activeOscillators.current.push(osc);
-            activeNodes.current.push(g);
-        };
-
-        createPart(freq, 0.45, duration);
-        createPart(freq * 2, 0.15, duration * 0.7);
-        createPart(freq * 3, 0.08, duration * 0.4);
-        createPart(freq * 4, 0.04, duration * 0.2, 'triangle');
-
-        if (transients.current.pluck) {
-            const pluck = ctx.createBufferSource();
-            pluck.buffer = transients.current.pluck;
-            const pg = ctx.createGain();
-            pg.gain.setValueAtTime(0.2, now);
-            pg.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            pluck.connect(pg);
-            pg.connect(ctx.destination);
-            pluck.start(now);
-        }
-    };
-
-    const createPianoVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const duration = 2.5;
-        const carrier = ctx.createOscillator();
-        carrier.type = 'sine';
-        carrier.frequency.setValueAtTime(freq, now);
-        const modulator = ctx.createOscillator();
-        modulator.type = 'sine';
-        modulator.frequency.setValueAtTime(freq, now);
-        const modGain = ctx.createGain();
-        modGain.gain.setValueAtTime(freq * 2, now);
-        modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-        const mainGain = ctx.createGain();
-        mainGain.gain.setValueAtTime(0, now);
-        mainGain.gain.linearRampToValueAtTime(0.5, now + 0.005);
-        mainGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(freq * 6, now);
-        filter.frequency.exponentialRampToValueAtTime(freq * 1.5, now + duration);
-        modulator.connect(modGain);
-        modGain.connect(carrier.frequency);
-        carrier.connect(filter);
-        filter.connect(mainGain);
-        mainGain.connect(ctx.destination);
-        carrier.start(now);
-        modulator.start(now);
-        carrier.stop(now + duration + 0.1);
-        modulator.stop(now + duration + 0.1);
-
-        if (transients.current.hammer) {
-            const hammer = ctx.createBufferSource();
-            hammer.buffer = transients.current.hammer;
-            const hg = ctx.createGain();
-            hg.gain.setValueAtTime(0.3, now);
-            hg.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-            hammer.connect(hg);
-            hg.connect(ctx.destination);
-            hammer.start(now);
-        }
-
-        activeOscillators.current.push(carrier, modulator);
-        activeNodes.current.push(modGain, mainGain, filter);
-    };
-
-    const createVoiceVoice = (ctx: AudioContext, freq: number, now: number) => {
-        const duration = 2.5;
-        const source = ctx.createOscillator();
-        source.type = 'sawtooth';
-        source.frequency.setValueAtTime(freq, now);
-        const vibrato = ctx.createOscillator();
-        vibrato.frequency.setValueAtTime(5.8, now);
-        const vg = ctx.createGain();
-        vg.gain.setValueAtTime(freq * 0.015, now);
-        vibrato.connect(vg);
-        vg.connect(source.frequency);
-        vibrato.start(now);
-
-        const createFormant = (f: number, q: number, gainVal: number) => {
-            const filter = ctx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(f, now);
-            filter.Q.setValueAtTime(q, now);
-            const g = ctx.createGain();
-            g.gain.setValueAtTime(gainVal, now);
-            filter.connect(g);
-            return { filter, g };
-        };
-
-        const f1 = createFormant(800, 10, 1.2);
-        const f2 = createFormant(2300, 12, 0.6);
-        const f3 = createFormant(3200, 15, 0.3);
-        const f4 = createFormant(3800, 15, 0.2);
-
-        const out = ctx.createGain();
-        out.gain.setValueAtTime(0, now);
-        out.gain.linearRampToValueAtTime(0.6, now + 0.15);
-        out.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        source.connect(f1.filter);
-        source.connect(f2.filter);
-        source.connect(f3.filter);
-        source.connect(f4.filter);
-        f1.g.connect(out);
-        f2.g.connect(out);
-        f3.g.connect(out);
-        f4.g.connect(out);
-        out.connect(ctx.destination);
-
-        source.start(now);
-        source.stop(now + duration + 0.5);
-        vibrato.stop(now + duration + 0.5);
-
-        if (transients.current.breath) {
-            const breath = ctx.createBufferSource();
-            breath.buffer = transients.current.breath;
-            const bFilter = ctx.createBiquadFilter();
-            bFilter.type = 'highpass';
-            bFilter.frequency.setValueAtTime(2000, now);
-            const bg = ctx.createGain();
-            bg.gain.setValueAtTime(0.05, now);
-            bg.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            breath.connect(bFilter);
-            bFilter.connect(bg);
-            bg.connect(ctx.destination);
-            breath.start(now);
-        }
-
-        activeOscillators.current.push(source, vibrato);
-        activeNodes.current.push(f1.filter, f1.g, f2.filter, f2.g, f3.filter, f3.g, f4.filter, f4.g, out, vg);
-    };
-
     const pluckString = (freq: number) => {
         if (!audioContext.current) {
             audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         }
         const ctx = audioContext.current;
         if (ctx.state === 'suspended') ctx.resume();
-        const now = ctx.currentTime;
-        if (instrument === 'guitar') createGuitarVoice(ctx, freq, now);
-        else if (instrument === 'piano') createPianoVoice(ctx, freq, now);
-        else if (instrument === 'voice') createVoiceVoice(ctx, freq, now);
 
-        setTimeout(() => {
-            activeOscillators.current = activeOscillators.current.filter(o => {
-                try { return o.frequency.value > 0; } catch (e) { return false; }
-            });
-        }, 4000);
+        const engineInstrument = instrument === 'guitar' ? 'acoustic-guitar' : instrument;
+        playNote(ctx, engineInstrument, freq);
     };
 
     const playString = (freq: number, index: number) => {
@@ -241,7 +62,7 @@ export const GuitarTuner: React.FC = () => {
         pluckString(freq);
         intervalRef.current = window.setInterval(() => {
             pluckString(freq);
-        }, 3000);
+        }, 3000); // 3 seconds loop
     };
 
     useEffect(() => {
