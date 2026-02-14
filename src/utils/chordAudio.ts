@@ -103,103 +103,86 @@ function getChordFrequencies(chordName: string): number[] {
 }
 
 /**
- * Create a guitar voice using Karplus-Strong algorithm (Physical Modeling)
- * This simulates the physics of a plucked string for DAW-quality realism.
+ * Create an acoustic guitar voice for a single frequency
+ * Warm, natural sound with percussive attack and quick decay
+ */
+/**
+ * Create a nylon string acoustic guitar voice for a single frequency
+ * Warm, mellow sound with soft attack and rich lower harmonics
+ */
+/**
+ * Create a classical guitar voice (Nylon) for a single frequency
+ * DISTINCT PLUCK, WOODEN BODY RESONANCE, WARMTH
  */
 function createAcousticGuitarVoice(
     ctx: AudioContext,
     freq: number,
     now: number,
-    duration: number = 4.0
+    duration: number = 3.5
 ): void {
-    const sampleRate = ctx.sampleRate;
-    // Calculate the delay line length (period) for the desired frequency
-    // Period = SampleRate / Frequency
-    const period = sampleRate / freq;
-    const bufferSize = Math.floor(period);
+    const createPart = (
+        f: number,
+        gainVal: number,
+        decay: number,
+        type: OscillatorType = 'sine',
+        detune: number = 0
+    ) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
 
-    // Total duration in samples
-    const length = Math.floor(sampleRate * duration);
-    const audioBuffer = ctx.createBuffer(1, length, sampleRate);
-    const data = audioBuffer.getChannelData(0);
+        osc.type = type;
+        osc.frequency.setValueAtTime(f, now);
+        if (detune !== 0) osc.detune.setValueAtTime(detune, now);
 
-    // 2. Excitation (The Pluck)
-    // Fill the delay line (bufferSize) with noise (White Noise Burst)
-    // This represents the energy imparted to the string
-    const attackLen = Math.floor(sampleRate * 0.02); // 20ms attack noise
+        // DISTINCT PLUCK ENVELOPE (Fingernail on Nylon)
+        g.gain.setValueAtTime(0, now);
+        // Very fast attack for the initial "tick" of the nail against string
+        g.gain.linearRampToValueAtTime(gainVal, now + 0.002);
+        // Quick decay to sustain level (the "pluck" transient)
+        g.gain.exponentialRampToValueAtTime(gainVal * 0.6, now + 0.04);
+        // Long, warm sustain with slow exponential decay
+        g.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
-    // Current state of the "string" (circular buffer simulation)
-    const stringState = new Float32Array(bufferSize);
+        osc.connect(g);
+        g.connect(ctx.destination);
 
-    // Initial noise burst (The Pluck)
-    // Nylon strings have a softer attack than steel, so we smooth the noise slightly
-    let prevNoise = 0;
-    for (let i = 0; i < bufferSize; i++) {
-        if (i < attackLen) {
-            const white = Math.random() * 2 - 1;
-            // Simple Low Pass on noise for "fingernail on nylon" sound
-            stringState[i] = (prevNoise + white) * 0.5;
-            prevNoise = stringState[i];
-        } else {
-            stringState[i] = 0;
-        }
-    }
+        osc.start(now);
+        osc.stop(now + decay + 0.1);
+    };
 
-    // 3. Karplus-Strong Feedback Loop
-    // Iterate to generate the full sound
-    // y[n] = 0.5 * (y[n-p] + y[n-p-1]) * decay
+    // 1. FUNDAMENTAL (The core note) - Warm sine
+    createPart(freq, 0.45, duration, 'sine');
 
-    // Decay factor controls sustain (0.990 - 0.999)
-    // Nylon strings lose high freqs faster. Lower notes sustain longer.
-    // We adjust decay based on frequency to mimic physics
-    const baseDecay = 0.994 + (100 / (freq + 100)) * 0.003;
+    // 2. BODY RESONANCE (The wooden box) - Low warmth
+    // A slightly detuned sine at fundamental adds "wood" character
+    createPart(freq, 0.15, duration * 0.8, 'sine', 2);
+    createPart(freq, 0.15, duration * 0.8, 'sine', -2);
 
-    // Pointer for the circular buffer
-    let k = 0;
+    // 3. THE PLUCK (Transient harmonics)
+    // Stronger upper harmonics that decay faster = clearer attack
+    createPart(freq * 2, 0.25, duration * 0.7, 'sine'); // Octave
+    createPart(freq * 3, 0.15, duration * 0.5, 'sine'); // Fifth
+    createPart(freq * 4, 0.05, duration * 0.3, 'triangle'); // Double octave (Triangle for bite)
 
-    // Generate the audio data
-    for (let i = 0; i < length; i++) {
-        // Read current output from the delay line
-        const currentOutput = stringState[k];
-
-        // Write to output buffer
-        data[i] = currentOutput;
-
-        // Calculate feedback (Low Pass Filtered)
-        // Average of current and previous sample in the delay line
-        const prevIndex = (k === 0) ? bufferSize - 1 : k - 1;
-        const prevOutput = stringState[prevIndex];
-
-        // K-S Algorithm: Average + Decay
-        // This simple averaging acts as a Low Pass Filter, simulating string damping
-        const feedbackSample = (currentOutput + prevOutput) * 0.5 * baseDecay;
-
-        // Write back to delay line (closing the loop)
-        stringState[k] = feedbackSample;
-
-        // Advance pointer
-        k++;
-        if (k >= bufferSize) k = 0;
-    }
-
-    // 4. Play the generated buffer
-    const src = ctx.createBufferSource();
-    src.buffer = audioBuffer;
-
-    // Add a gain node for final volume/envelope shaping
-    const gainNode = ctx.createGain();
-
-    // Natural envelope (ADSR) to shape the raw K-S output
-    // The raw K-S string decays naturally, but we ensure it fades out cleanly at the end
-    gainNode.gain.setValueAtTime(1.2, now); // Boost volume slightly as K-S can be quiet
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration - 0.1);
-
-    src.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    src.start(now);
+    // 4. "FINGER NOISE" / TRANSIENT
+    // High frequency burst for the nail hitting the string
+    const noiseOsc = ctx.createOscillator();
+    const noiseGain = ctx.createGain();
+    noiseOsc.type = 'triangle';
+    noiseOsc.frequency.setValueAtTime(freq * 8, now); // High pitched transient
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.03, now + 0.001);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03); // Very short
+    noiseOsc.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseOsc.start(now);
+    noiseOsc.stop(now + 0.05);
 }
 
+/**
+ * Create a piano voice for a single frequency
+ * Rich sound with harmonics and longer sustain
+ */
 /**
  * Create a piano voice (using the previous "Nylon Guitar" profile per user request)
  * The user preferred the warm, mellow sound for the piano.

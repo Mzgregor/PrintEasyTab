@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 import { useSongStore } from '../store/useSongStore';
 
 interface ChordSelectorProps {
@@ -60,9 +60,19 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
 }) => {
     const { language, t } = useSongStore();
 
+    // Local state to toggle between base note selection and variants
+    const [showBaseSelection, setShowBaseSelection] = React.useState(false);
+
+    // Reset view when modal opens
+    React.useEffect(() => {
+        if (isOpen) {
+            setShowBaseSelection(false);
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
-    // Extract base note from current chord (e.g., "Em7" -> "E")
+    // Extract base note from current chord
     const getBaseNote = (chord: string): string | null => {
         if (!chord) return null;
         const match = chord.match(/^([A-G][#b]?)/);
@@ -72,10 +82,22 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
     const baseNote = getBaseNote(currentChord || '');
     const isEmpty = !currentChord || currentChord.trim() === '';
 
+    // Determine what to show
+    const isSelectingBase = isEmpty || showBaseSelection;
+
     // Handle base note selection
     const handleBaseNoteSelect = (note: string) => {
         onSelectChord(note);
-        onClose();
+        // If we were selecting base intentionally to switch, maybe we want to keep modal open?
+        // But user flow usually implies picking a base note starts the variant selection.
+        // If I update chord to 'C', parent re-renders, 'currentChord' becomes 'C'.
+        // 'isEmpty' becomes false. 'showBaseSelection' is false (unless we reset it?)
+        // If I keep 'showBaseSelection' as true, we stay in grid.
+        // We want to go to variants.
+        setShowBaseSelection(false);
+        // Note: IF the parent closes the modal on select (it doesn't seems so), this is fine.
+        // But logic says: Base Note -> Variant.
+        // If I'm just changing base, I probably want to see variants next.
     };
 
     // Handle variant selection
@@ -85,7 +107,6 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
             onClose();
         }
     };
-
 
     return (
         <>
@@ -111,19 +132,37 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <h2 className="text-2xl font-black uppercase tracking-wider text-text-primary mb-2">
-                            {isEmpty ? t('chord.select_base') : t('chord.select_variant')}
+                        <h2 className="text-2xl font-black uppercase tracking-wider text-text-primary mb-6">
+                            {isSelectingBase ? t('chord.select_base') : t('chord.select_variant')}
                         </h2>
-                        {!isEmpty && baseNote && (
-                            <p className="text-text-secondary text-sm">
-                                {t('chord.current')}: <span className="text-accent font-bold">{currentChord}</span>
-                            </p>
+
+                        {!isSelectingBase && baseNote && (
+                            <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
+                                {/* Current Chord Display - Professional Look */}
+                                <div className="bg-bg-tertiary/50 border border-border-main rounded-2xl p-4 min-w-[120px] shadow-lg backdrop-blur-sm">
+                                    <p className="text-xs text-text-secondary uppercase tracking-widest font-bold mb-1">
+                                        {t('chord.current')}
+                                    </p>
+                                    <p className="text-4xl font-black text-accent drop-shadow-sm">
+                                        {currentChord}
+                                    </p>
+                                </div>
+
+                                {/* Change Base Note Button - More Visible */}
+                                <button
+                                    onClick={() => setShowBaseSelection(true)}
+                                    className="group flex items-center gap-2 px-5 py-2.5 bg-bg-tertiary hover:bg-accent hover:text-white text-text-secondary rounded-full transition-all duration-300 shadow-md hover:shadow-accent/20 border border-border-main hover:border-accent"
+                                >
+                                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                    <span className="font-semibold text-sm uppercase tracking-wide">{t('chord.change_base')}</span>
+                                </button>
+                            </div>
                         )}
                     </div>
 
-                    {/* Base Note Selection (for empty measures) */}
-                    {isEmpty && (
-                        <div className="grid grid-cols-7 gap-3">
+                    {/* Base Note Selection */}
+                    {isSelectingBase && (
+                        <div className="grid grid-cols-7 gap-3 animate-in fade-in slide-in-from-left-4 duration-200">
                             {BASE_NOTES.map(({ note, french }) => (
                                 <button
                                     key={note}
@@ -139,9 +178,9 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
                         </div>
                     )}
 
-                    {/* Variant Selection (for existing chords) */}
-                    {!isEmpty && baseNote && (
-                        <div className="space-y-6">
+                    {/* Variant Selection */}
+                    {!isSelectingBase && baseNote && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
                             {/* Major & Minor */}
                             <div>
                                 <h3 className="text-xs font-black uppercase tracking-wider text-text-secondary mb-3 flex items-center gap-2">

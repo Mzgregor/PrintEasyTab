@@ -195,6 +195,7 @@ export const translations: Record<string, Record<string, string>> = {
         'chord.category.suspended': 'Accords Suspendus',
         'chord.category.sixth': 'Accords 6e',
         'chord.category.extended': 'Accords Enrichis',
+        'chord.change_base': 'Changer la note de base',
 
         // Admin
         'admin.title': 'Panneau d\'Administration',
@@ -439,6 +440,7 @@ export const translations: Record<string, Record<string, string>> = {
         'chord.category.suspended': 'Suspended Chords',
         'chord.category.sixth': '6th Chords',
         'chord.category.extended': 'Extended Chords',
+        'chord.change_base': 'Change base note',
 
         // Admin
         'admin.title': 'Admin Panel',
