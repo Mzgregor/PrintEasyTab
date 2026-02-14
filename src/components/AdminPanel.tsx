@@ -33,7 +33,8 @@ export const AdminPanel: React.FC = () => {
             return;
         }
 
-        const result = createUserAsAdmin(newUserEmail, newUserPassword, newUserRole);
+        const username = newUserEmail.split('@')[0];
+        const result = createUserAsAdmin(newUserEmail, username, newUserPassword, newUserRole);
         if (result.success) {
             setShowAddUser(false);
             setNewUserEmail('');

@@ -1,7 +1,9 @@
 /**
- * Audio Engine utilizing Web Audio API
- * Centralizes instrument synthesis for consistency and performance.
+ * Audio Engine utilizing smplr for realistic playback
+ * Falls back to Web Audio API synthesis if samples are not loaded.
  */
+
+import { Soundfont } from 'smplr';
 
 // ==========================================
 // CONSTANTS & TYPES
@@ -9,51 +11,129 @@
 
 export type InstrumentType = 'acoustic-guitar' | 'piano' | 'voice';
 
+// Global shared instances
+// Global shared instances and state
+let guitarInstrument: any | null = null;
+let pianoInstrument: any | null = null;
+let currentContext: AudioContext | null = null; // Track the context used for initialization
+
+// Loading states
+let isGuitarLoaded = false;
+let isPianoLoaded = false;
+let isGuitarLoading = false;
+let isPianoLoading = false;
+
+// Initialize instruments lazy-loaded, rebuilding if context changes
+const initInstruments = (ctx: AudioContext) => {
+    // If we have a new context, valid or not, we might need to re-init
+    // But soundfonts bind to a specific AudioContext. If the context passed is different 
+    // from the one we have, we must re-create the instruments.
+    if (currentContext !== ctx) {
+        // Context changed! Reset everything.
+        // console.log("AudioContext changed, reloading instruments...");
+
+        // Use the new context
+        currentContext = ctx;
+
+        // Reset instruments
+        guitarInstrument = null;
+        pianoInstrument = null;
+        isGuitarLoaded = false;
+        isPianoLoaded = false;
+        isGuitarLoading = false;
+        isPianoLoading = false;
+    }
+
+    // Initialize Guitar
+    if (!guitarInstrument && !isGuitarLoading) {
+        isGuitarLoading = true;
+        // console.log("Initializing Acoustic Guitar...");
+        const guitar = new Soundfont(ctx, {
+            instrument: 'acoustic_guitar_steel',
+        });
+
+        guitar.load.then(() => {
+            // console.log("Acoustic Guitar loaded!");
+            guitarInstrument = guitar;
+            isGuitarLoaded = true;
+            isGuitarLoading = false;
+        }).catch((e: any) => {
+            console.error('Failed to load guitar samples', e);
+            isGuitarLoading = false;
+            // Optionally set error state or just leave it null to keep trying/using fallback
+        });
+    }
+
+    // Initialize Piano
+    if (!pianoInstrument && !isPianoLoading) {
+        isPianoLoading = true;
+        // console.log("Initializing Acoustic Grand Piano...");
+        const piano = new Soundfont(ctx, {
+            instrument: 'acoustic_grand_piano',
+        });
+
+        piano.load.then(() => {
+            // console.log("Acoustic Grand Piano loaded!");
+            pianoInstrument = piano;
+            isPianoLoaded = true;
+            isPianoLoading = false;
+        }).catch((e: any) => {
+            console.error('Failed to load piano samples', e);
+            isPianoLoading = false;
+        });
+    }
+};
+
+// ... (Rest of utilities remain the same, so we skip re-declaring them here if they are unchanged)
+
+// ==========================================
+// UTILITIES (Fallback Synthesis)
+// ==========================================
+
 // Global shared buffers (generated once)
 let sharedNoiseBuffer: AudioBuffer | null = null;
 let sharedHammerBuffer: AudioBuffer | null = null;
 
-// ==========================================
-// UTILITIES
-// ==========================================
-
 const createBuffer = (ctx: AudioContext, currBuffer: AudioBuffer | null, length: number, filler: (data: Float32Array) => void): AudioBuffer => {
-    if (currBuffer) return currBuffer;
+    // Re-create buffer if it belongs to a different context or doesn't exist
+    // Actually AudioBuffers are context-dependent in strict implementations 
+    // but usually can be shared if created with *a* context. 
+    // Safer to recreate if context is new, but for efficiency let's try to reuse if compatible, 
+    // or just checking if `currBuffer` exists is usually enough as simple buffers are just data.
+    // However, `createBuffer` is a method OF ctx, so it's tied.
+    if (currBuffer) return currBuffer; // Optimization: AudioBuffers are often portable but strictness varies.
     const buffer = ctx.createBuffer(1, ctx.sampleRate * length, ctx.sampleRate);
     filler(buffer.getChannelData(0));
     return buffer;
 };
 
 const getNoiseBuffer = (ctx: AudioContext): AudioBuffer => {
-    sharedNoiseBuffer = createBuffer(ctx, sharedNoiseBuffer, 0.5, (data) => {
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
-    });
-    return sharedNoiseBuffer;
+    // We might need to recreate if context sample rate differs significantly, 
+    // but typically safe to cache. If we want to be 100% safe:
+    if (!sharedNoiseBuffer || sharedNoiseBuffer.sampleRate !== ctx.sampleRate) {
+        sharedNoiseBuffer = createBuffer(ctx, null, 0.5, (data) => {
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+        });
+    }
+    return sharedNoiseBuffer!;
 };
 
 const getHammerBuffer = (ctx: AudioContext): AudioBuffer => {
-    // Thud-like percussive noise
-    sharedHammerBuffer = createBuffer(ctx, sharedHammerBuffer, 0.1, (data) => {
-        for (let i = 0; i < data.length; i++) {
-            // Exponential decay noise
-            data[i] = (Math.random() * 2 - 1) * Math.exp(-i * 0.05);
-        }
-    });
-    return sharedHammerBuffer;
+    if (!sharedHammerBuffer || sharedHammerBuffer.sampleRate !== ctx.sampleRate) {
+        sharedHammerBuffer = createBuffer(ctx, null, 0.1, (data) => {
+            for (let i = 0; i < data.length; i++) {
+                // Exponential decay noise
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i * 0.05);
+            }
+        });
+    }
+    return sharedHammerBuffer!;
 };
 
 // ==========================================
-// PIANO SYNTHESIS
+// SYNTHESIS FALLBACKS
 // ==========================================
 
-/**
- * Creates a physically modeled Grand Piano sound.
- * Features:
- * - Inharmonicity (Stiff strings stretch harmonics)
- * - Hammer Strike Noise
- * - Three-string unison (Detuned "Choir" effect)
- * - Frequency-dependent decay
- */
 export const createPianoVoice = (
     ctx: AudioContext,
     freq: number,
@@ -79,36 +159,20 @@ export const createPianoVoice = (
     noise.start(now);
 
     // 2. STRING SYNTHESIS
-    // Piano strings are stiff. Harmonics are not perfect integers (f, 2f, 3f...),
-    // they are slightly sharp: f_n = n * f0 * sqrt(1 + B * n^2)
-    // We simulate this with additive synthesis for lower partials and FM/Wave shaping for body.
-
-    // Inharmonicity Coefficient (B) - determines "metallicness"
-    // Higher for small pianos/low strings. Lower for grand pianos.
     let B = 0.0004;
     if (freq < 100) B = 0.0008; // Bass strings are stiffer
 
     const partials = [1, 2, 3, 4, 5, 6];
-
-    // Unison Detuning (Choir Effect)
-    // 3 strings per key for mid/highs. 1 or 2 for bass.
     const unisons = freq < 100 ? [0] : [-1.5, 0, 1.5]; // Cents
 
     unisons.forEach((detuneCents) => {
-        // Calculate detuned fundamental
         const detuneRatio = Math.pow(2, detuneCents / 1200);
         const f0 = freq * detuneRatio;
 
         partials.forEach((n) => {
-            // Calculate Stretched Harmonic Frequency
-            // fn = n * f0 * sqrt(1 + B * n^2)
             const stretch = Math.sqrt(1 + B * (n * n));
             const fn = n * f0 * stretch;
-
-            // Amplitude falloff for harmonics (low harmonics stronger)
             let amp = 1.0 / Math.pow(n, 1.5);
-
-            // Higher frequencies decay faster
             const releaseTime = duration / Math.sqrt(n);
 
             const osc = ctx.createOscillator();
@@ -116,12 +180,10 @@ export const createPianoVoice = (
             osc.frequency.setValueAtTime(fn, now);
 
             const g = ctx.createGain();
-
-            // Envelope
             g.gain.setValueAtTime(0, now);
-            g.gain.linearRampToValueAtTime(amp * 0.3, now + 0.01); // Quick attack
-            g.gain.exponentialRampToValueAtTime(amp * 0.1, now + 0.1); // Initial decay
-            g.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime); // Long tail
+            g.gain.linearRampToValueAtTime(amp * 0.3, now + 0.01);
+            g.gain.exponentialRampToValueAtTime(amp * 0.1, now + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
 
             osc.connect(g);
             g.connect(ctx.destination);
@@ -131,10 +193,6 @@ export const createPianoVoice = (
         });
     });
 };
-
-// ==========================================
-// ACOUSTIC GUITAR SYNTHESIS (Ported & Cleaned)
-// ==========================================
 
 export const createAcousticGuitarVoice = (
     ctx: AudioContext,
@@ -150,7 +208,7 @@ export const createAcousticGuitarVoice = (
 
         g.gain.setValueAtTime(0, now);
         g.gain.linearRampToValueAtTime(gain, now + 0.005);
-        g.gain.exponentialRampToValueAtTime(gain * 0.6, now + 0.05); // Pluck snap
+        g.gain.exponentialRampToValueAtTime(gain * 0.6, now + 0.05);
         g.gain.exponentialRampToValueAtTime(0.0001, now + decay);
 
         osc.connect(g);
@@ -183,10 +241,6 @@ export const createAcousticGuitarVoice = (
     noise.start(now);
 };
 
-// ==========================================
-// VOICE SYNTHESIS (Ported)
-// ==========================================
-
 export const createVoiceVoice = (
     ctx: AudioContext,
     freq: number,
@@ -210,10 +264,9 @@ export const createVoiceVoice = (
     out.gain.linearRampToValueAtTime(0.6, now + 0.15);
     out.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-    // Formant Filters (Ah/Oh sound vowel approx)
     const formants = [
         { f: 800, q: 10, g: 1.2 },
-        { f: 1200, q: 10, g: 0.8 }, // Adjusted for generic choir
+        { f: 1200, q: 10, g: 0.8 },
         { f: 2500, q: 15, g: 0.4 }
     ];
 
@@ -249,12 +302,53 @@ export const playNote = (
 ): void => {
     const startTime = now || ctx.currentTime;
 
+    // Ensure instruments are initialized for this context
+    // This will trigger a reload if the context has changed
+    initInstruments(ctx);
+
+    // Convert frequency to MIDI note for sampler
+    // MIDI note = 69 + 12 * log2(f / 440)
+    const midiNote = Math.round(69 + 12 * Math.log2(freq / 440));
+
     switch (instrument) {
         case 'piano':
-            createPianoVoice(ctx, freq, startTime, durationOverride);
+            // Check if loaded AND if the instrument instance matches the current context
+            // (Though initInstruments handles the reset, we DOUBLE CHECK to fallback if not ready)
+            if (isPianoLoaded && pianoInstrument) {
+                try {
+                    pianoInstrument.start({
+                        note: midiNote,
+                        time: startTime,
+                        duration: durationOverride || 3.0,
+                        velocity: 80
+                    });
+                } catch (e) {
+                    // Fallback if smplr crashes or fails
+                    console.warn("Piano sample failed, falling back", e);
+                    createPianoVoice(ctx, freq, startTime, durationOverride);
+                }
+            } else {
+                // Determine if we should wait or fallback.
+                // For real-time playing, we MUST fallback immediately.
+                createPianoVoice(ctx, freq, startTime, durationOverride);
+            }
             break;
         case 'acoustic-guitar':
-            createAcousticGuitarVoice(ctx, freq, startTime, durationOverride);
+            if (isGuitarLoaded && guitarInstrument) {
+                try {
+                    guitarInstrument.start({
+                        note: midiNote,
+                        time: startTime,
+                        duration: durationOverride || 4.0,
+                        velocity: 90
+                    });
+                } catch (e) {
+                    console.warn("Guitar sample failed, falling back", e);
+                    createAcousticGuitarVoice(ctx, freq, startTime, durationOverride);
+                }
+            } else {
+                createAcousticGuitarVoice(ctx, freq, startTime, durationOverride);
+            }
             break;
         case 'voice':
             createVoiceVoice(ctx, freq, startTime, durationOverride ?? 2.5);

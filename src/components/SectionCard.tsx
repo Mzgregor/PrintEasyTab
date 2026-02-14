@@ -269,7 +269,8 @@ export const SectionCard: React.FC<Props> = ({ songId, section }) => {
                             {isChordsMode && (
                                 <button
                                     onClick={handlePlayStructure}
-                                    className={`btn-skeuo-dark p-2 transition-all ${isPlaying ? 'text-accent border-accent/50' : 'hover:text-accent'}`}
+                                    className={`btn-skeuo-dark p-2 transition-all ${isPlaying ? 'border-red-400/50' : 'hover:text-accent'}`}
+                                    style={{ color: isPlaying ? '#f87171' : undefined }}
                                     title={isPlaying ? "Arrêter la lecture" : "Écouter la structure"}
                                 >
                                     {isPlaying ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}

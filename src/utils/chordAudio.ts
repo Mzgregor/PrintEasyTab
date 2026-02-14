@@ -5,7 +5,7 @@
 import { playNote } from './audioEngine';
 
 // Instrument types for chord playback
-export type ChordInstrument = 'acoustic-guitar' | 'piano';
+export type ChordInstrument = 'acoustic-guitar' | 'electric-guitar' | 'piano' | '12-string-acoustic';
 
 // Note frequencies in Hz (A4 = 440Hz standard tuning)
 const NOTE_FREQUENCIES: Record<string, number> = {
@@ -141,13 +141,13 @@ export function playChord(
             if (instrument === 'acoustic-guitar') {
                 // ENHANCED CLASSICAL GUITAR STRUMMING
                 // Classical arpeggios are very distinct. 
-                // 60ms delay between strings gives a clear, articulated "rolled" chord.
-                const strumDelay = 0.06;
+                // 80ms delay gives a more "sweeping" feel like Stairway intro
+                const strumDelay = 0.08;
                 const noteStartTime = now + (index * strumDelay);
 
-                // Longer duration for classical guitar resonance
+                // Longer duration for resonance (letting notes ring out)
                 // Varying duration slightly adds human feel
-                const varyDuration = 3.5 + Math.random() * 0.5;
+                const varyDuration = 4.5 + Math.random() * 0.8;
 
                 playNote(ctx, 'acoustic-guitar', freq, noteStartTime, varyDuration);
             } else {
