@@ -9,16 +9,91 @@ interface ChordSelectorProps {
     currentChord?: string;
 }
 
-// Base notes with French equivalents
-const BASE_NOTES = [
-    { note: 'C', french: 'Do' },
-    { note: 'D', french: 'Ré' },
-    { note: 'E', french: 'Mi' },
-    { note: 'F', french: 'Fa' },
-    { note: 'G', french: 'Sol' },
-    { note: 'A', french: 'La' },
-    { note: 'B', french: 'Si' }
+// Base notes organized in 3 rows: Natural, Sharp, Flat
+// Each column represents a note family with color coding
+const NOTE_GROUPS = [
+    {
+        natural: { note: 'C', french: 'Do' },
+        sharp: { note: 'C#', french: 'Do#' },
+        flat: null, // No Cb in standard notation
+        color: 'blue' // C family
+    },
+    {
+        natural: { note: 'D', french: 'Ré' },
+        sharp: { note: 'D#', french: 'Ré#' },
+        flat: { note: 'Db', french: 'Réb' },
+        color: 'purple' // D family
+    },
+    {
+        natural: { note: 'E', french: 'Mi' },
+        sharp: null, // E# = F
+        flat: { note: 'Eb', french: 'Mib' },
+        color: 'pink' // E family
+    },
+    {
+        natural: { note: 'F', french: 'Fa' },
+        sharp: { note: 'F#', french: 'Fa#' },
+        flat: null, // No Fb in standard notation
+        color: 'green' // F family
+    },
+    {
+        natural: { note: 'G', french: 'Sol' },
+        sharp: { note: 'G#', french: 'Sol#' },
+        flat: { note: 'Gb', french: 'Solb' },
+        color: 'orange' // G family
+    },
+    {
+        natural: { note: 'A', french: 'La' },
+        sharp: { note: 'A#', french: 'La#' },
+        flat: { note: 'Ab', french: 'Lab' },
+        color: 'red' // A family
+    },
+    {
+        natural: { note: 'B', french: 'Si' },
+        sharp: null, // B# = C
+        flat: { note: 'Bb', french: 'Sib' },
+        color: 'cyan' // B family
+    }
 ];
+
+// Color mapping for consistent design
+const COLOR_CLASSES: Record<string, { border: string; hover: string; bg: string }> = {
+    blue: {
+        border: 'border-l-blue-500',
+        hover: 'hover:border-blue-500 hover:bg-blue-500/10',
+        bg: 'bg-blue-500/5'
+    },
+    purple: {
+        border: 'border-l-purple-500',
+        hover: 'hover:border-purple-500 hover:bg-purple-500/10',
+        bg: 'bg-purple-500/5'
+    },
+    pink: {
+        border: 'border-l-pink-500',
+        hover: 'hover:border-pink-500 hover:bg-pink-500/10',
+        bg: 'bg-pink-500/5'
+    },
+    green: {
+        border: 'border-l-green-500',
+        hover: 'hover:border-green-500 hover:bg-green-500/10',
+        bg: 'bg-green-500/5'
+    },
+    orange: {
+        border: 'border-l-orange-500',
+        hover: 'hover:border-orange-500 hover:bg-orange-500/10',
+        bg: 'bg-orange-500/5'
+    },
+    red: {
+        border: 'border-l-red-500',
+        hover: 'hover:border-red-500 hover:bg-red-500/10',
+        bg: 'bg-red-500/5'
+    },
+    cyan: {
+        border: 'border-l-cyan-500',
+        hover: 'hover:border-cyan-500 hover:bg-cyan-500/10',
+        bg: 'bg-cyan-500/5'
+    }
+};
 
 // Chord variant categories with all classic types
 const CHORD_VARIANTS = {
@@ -165,21 +240,93 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
                         )}
                     </div>
 
-                    {/* Base Note Selection */}
+                    {/* Base Note Selection - 3 Row Layout */}
                     {isSelectingBase && (
-                        <div className="grid grid-cols-7 gap-3 animate-in fade-in slide-in-from-left-4 duration-200">
-                            {BASE_NOTES.map(({ note, french }) => (
-                                <button
-                                    key={note}
-                                    onClick={() => handleBaseNoteSelect(note)}
-                                    className="aspect-square flex flex-col items-center justify-center gap-1 bg-bg-tertiary border-2 border-border-main rounded-xl font-black text-2xl text-text-primary hover:border-accent hover:bg-accent/10 hover:scale-105 transition-all active:scale-95 shadow-lg"
-                                >
-                                    <span>{note}</span>
-                                    <span className="text-[10px] text-text-secondary font-normal">
-                                        {language === 'fr' ? french : note}
-                                    </span>
-                                </button>
-                            ))}
+                        <div className="space-y-1 animate-in fade-in slide-in-from-left-4 duration-200">
+                            {/* Row Labels */}
+                            <div className="grid grid-cols-8 gap-2 mb-2">
+                                <div className="text-xs font-bold text-text-secondary uppercase tracking-wider"></div>
+                                {NOTE_GROUPS.map((group, idx) => (
+                                    <div key={idx} className="text-center">
+                                        <span className={`inline-block w-2 h-2 rounded-full bg-${group.color}-500`}></span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Row 1: Natural Notes */}
+                            <div className="grid grid-cols-8 gap-2">
+                                <div className="flex items-center justify-end pr-2">
+                                    <span className="text-xs font-bold text-text-secondary uppercase">Natural</span>
+                                </div>
+                                {NOTE_GROUPS.map((group, idx) => {
+                                    const { note, french } = group.natural;
+                                    const colors = COLOR_CLASSES[group.color];
+                                    return (
+                                        <button
+                                            key={note}
+                                            onClick={() => handleBaseNoteSelect(note)}
+                                            className={`aspect-square flex flex-col items-center justify-center gap-0.5 bg-bg-tertiary border-2 border-l-4 ${colors.border} border-border-main rounded-lg font-black text-xl text-text-primary ${colors.hover} hover:scale-105 transition-all active:scale-95 shadow-md ${colors.bg}`}
+                                        >
+                                            <span>{note}</span>
+                                            <span className="text-[8px] text-text-secondary font-normal">
+                                                {language === 'fr' ? french : note}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Row 2: Sharp Notes */}
+                            <div className="grid grid-cols-8 gap-2">
+                                <div className="flex items-center justify-end pr-2">
+                                    <span className="text-xs font-bold text-text-secondary uppercase">Sharp #</span>
+                                </div>
+                                {NOTE_GROUPS.map((group, idx) => {
+                                    if (!group.sharp) {
+                                        return <div key={idx} className="aspect-square"></div>;
+                                    }
+                                    const { note, french } = group.sharp;
+                                    const colors = COLOR_CLASSES[group.color];
+                                    return (
+                                        <button
+                                            key={note}
+                                            onClick={() => handleBaseNoteSelect(note)}
+                                            className={`aspect-square flex flex-col items-center justify-center gap-0.5 bg-bg-tertiary border-2 border-l-4 ${colors.border} border-border-main rounded-lg font-black text-lg text-text-primary ${colors.hover} hover:scale-105 transition-all active:scale-95 shadow-md ${colors.bg}`}
+                                        >
+                                            <span>{note}</span>
+                                            <span className="text-[8px] text-text-secondary font-normal">
+                                                {language === 'fr' ? french : note}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Row 3: Flat Notes */}
+                            <div className="grid grid-cols-8 gap-2">
+                                <div className="flex items-center justify-end pr-2">
+                                    <span className="text-xs font-bold text-text-secondary uppercase">Flat ♭</span>
+                                </div>
+                                {NOTE_GROUPS.map((group, idx) => {
+                                    if (!group.flat) {
+                                        return <div key={idx} className="aspect-square"></div>;
+                                    }
+                                    const { note, french } = group.flat;
+                                    const colors = COLOR_CLASSES[group.color];
+                                    return (
+                                        <button
+                                            key={note}
+                                            onClick={() => handleBaseNoteSelect(note)}
+                                            className={`aspect-square flex flex-col items-center justify-center gap-0.5 bg-bg-tertiary border-2 border-l-4 ${colors.border} border-border-main rounded-lg font-black text-lg text-text-primary ${colors.hover} hover:scale-105 transition-all active:scale-95 shadow-md ${colors.bg}`}
+                                        >
+                                            <span>{note}</span>
+                                            <span className="text-[8px] text-text-secondary font-normal">
+                                                {language === 'fr' ? french : note}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
 
