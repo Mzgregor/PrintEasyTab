@@ -39,6 +39,11 @@ const CHORD_VARIANTS = {
         { suffix: 'sus2', label: 'Sus 2' },
         { suffix: 'sus4', label: 'Sus 4' }
     ],
+    diminished: [
+        { suffix: 'dim', label: 'Diminished' },
+        { suffix: 'dim7', label: 'Diminished 7' },
+        { suffix: 'aug', label: 'Augmented' }
+    ],
     sixth: [
         { suffix: '6', label: 'Major 6' },
         { suffix: 'm6', label: 'Minor 6' }
@@ -250,6 +255,25 @@ export const ChordSelector: React.FC<ChordSelectorProps> = ({
                                             key={suffix}
                                             onClick={() => handleVariantSelect(suffix)}
                                             className="px-4 py-3 bg-bg-tertiary border border-border-main rounded-lg font-bold text-lg text-text-primary hover:border-green-500 hover:bg-green-500/10 hover:scale-105 transition-all active:scale-95"
+                                        >
+                                            {baseNote}{suffix}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Diminished & Augmented */}
+                            <div>
+                                <h3 className="text-xs font-black uppercase tracking-wider text-text-secondary mb-3 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                    {t('chord.category.diminished')}
+                                </h3>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {CHORD_VARIANTS.diminished.map(({ suffix }) => (
+                                        <button
+                                            key={suffix}
+                                            onClick={() => handleVariantSelect(suffix)}
+                                            className="px-4 py-3 bg-bg-tertiary border border-border-main rounded-lg font-bold text-lg text-text-primary hover:border-red-500 hover:bg-red-500/10 hover:scale-105 transition-all active:scale-95"
                                         >
                                             {baseNote}{suffix}
                                         </button>

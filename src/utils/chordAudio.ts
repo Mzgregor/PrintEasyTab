@@ -47,6 +47,11 @@ const CHORD_FORMULAS: Record<string, number[]> = {
     'sus2': [0, 2, 7],          // Sus 2 (C D G)
     'sus4': [0, 5, 7],          // Sus 4 (C F G)
 
+    // Diminished & Augmented
+    'dim': [0, 3, 6],           // Diminished (C Eb Gb)
+    'dim7': [0, 3, 6, 9],       // Diminished 7 (C Eb Gb Bbb/A)
+    'aug': [0, 4, 8],           // Augmented (C E G#)
+
     // Sixth
     '6': [0, 4, 7, 9],          // Major 6 (C E G A)
     'm6': [0, 3, 7, 9],         // Minor 6 (C Eb G A)
