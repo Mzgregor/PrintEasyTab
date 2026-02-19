@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSongStore } from '../store/useSongStore';
 import {
-    Search, Trash2, Heart, Edit2, CheckSquare, Square, Eye, ThumbsUp
+    Search, Trash2, Heart, Edit2, CheckSquare, Square, Eye, ThumbsUp, Download, Upload
 } from 'lucide-react';
+import { ExportImportModal } from './ExportImportModal';
+import type { Song } from '../types';
 
 
 export const LibraryView: React.FC = () => {
@@ -24,6 +26,14 @@ export const LibraryView: React.FC = () => {
     const [sortBy, setSortBy] = useState<'title' | 'artist' | 'date' | 'favorite'>('date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    // Export / Import states
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+    const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const isAdmin = currentUser?.role === 'admin';
 
     useEffect(() => {
         if (activeTab === 'global') {
@@ -91,6 +101,83 @@ export const LibraryView: React.FC = () => {
         });
     };
 
+    const showToast = (message: string, type: 'success' | 'info' = 'success') => {
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        setToast({ message, type });
+        toastTimerRef.current = setTimeout(() => setToast(null), 5000);
+    };
+
+    // --- Export Logic ---
+    const handleExport = () => {
+        try {
+            const stored = localStorage.getItem('print_easy_tab_library');
+            const allSongs: Song[] = stored ? JSON.parse(stored) : [];
+
+            const blob = new Blob([JSON.stringify(allSongs, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `one-more-tab-export-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setShowExportModal(false);
+            showToast(`🎸 Export One More Tab ! ${allSongs.length} Chansons`);
+        } catch (e) {
+            console.error('Export failed', e);
+            showToast('Erreur lors de l\'export', 'info');
+        }
+    };
+
+    // --- Import Logic ---
+    const handleImport = (file?: File) => {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed: Song[] = JSON.parse(e.target?.result as string);
+                if (!Array.isArray(parsed)) throw new Error('Format invalide');
+
+                const stored = localStorage.getItem('print_easy_tab_library');
+                const existing: Song[] = stored ? JSON.parse(stored) : [];
+
+                let imported = 0;
+                let skipped = 0;
+
+                const newSongs = [...existing];
+                for (const song of parsed) {
+                    const isDuplicate = existing.some(
+                        ex =>
+                            ex.id === song.id ||
+                            (ex.title?.toLowerCase() === song.title?.toLowerCase() &&
+                                ex.artist?.toLowerCase() === song.artist?.toLowerCase())
+                    );
+                    if (isDuplicate) {
+                        skipped++;
+                    } else {
+                        newSongs.push(song);
+                        imported++;
+                    }
+                }
+
+                localStorage.setItem('print_easy_tab_library', JSON.stringify(newSongs));
+                fetchAllGlobalSongs();
+                setShowImportModal(false);
+
+                let msg = `🎸 Import One More Tab ! ${imported} Chansons`;
+                if (skipped > 0) msg += ` (${skipped} doublon${skipped > 1 ? 's' : ''} ignoré${skipped > 1 ? 's' : ''})`;
+                showToast(msg);
+            } catch (err) {
+                console.error('Import failed', err);
+                showToast('Erreur : fichier JSON invalide', 'info');
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -117,6 +204,28 @@ export const LibraryView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* Admin Export / Import buttons — visible only on global tab */}
+                    {isAdmin && activeTab === 'global' && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowImportModal(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/20 text-red-400 hover:bg-red-600/30 hover:text-red-300 border border-red-500/30 transition-all font-black text-xs uppercase tracking-wider"
+                                title="Importer des chansons"
+                            >
+                                <Upload size={14} />
+                                Import
+                            </button>
+                            <button
+                                onClick={() => setShowExportModal(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/20 text-red-400 hover:bg-red-600/30 hover:text-red-300 border border-red-500/30 transition-all font-black text-xs uppercase tracking-wider"
+                                title="Exporter les chansons"
+                            >
+                                <Download size={14} />
+                                Export
+                            </button>
+                        </div>
+                    )}
+
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                         <input
@@ -312,6 +421,34 @@ export const LibraryView: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Export Modal */}
+            {showExportModal && (
+                <ExportImportModal
+                    mode="export"
+                    onConfirm={handleExport}
+                    onCancel={() => setShowExportModal(false)}
+                />
+            )}
+
+            {/* Import Modal */}
+            {showImportModal && (
+                <ExportImportModal
+                    mode="import"
+                    onConfirm={(file) => handleImport(file)}
+                    onCancel={() => setShowImportModal(false)}
+                />
+            )}
+
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[400] animate-in slide-in-from-bottom-4 fade-in duration-300 px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 font-black text-sm uppercase tracking-wider whitespace-nowrap ${toast.type === 'success'
+                        ? 'bg-bg-secondary border-red-500/40 text-red-300 shadow-red-900/30'
+                        : 'bg-bg-secondary border-border-main text-secondary'
+                    }`}>
+                    {toast.message}
+                </div>
+            )}
         </div>
     );
 };
