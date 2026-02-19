@@ -28,6 +28,7 @@ interface SongState {
     addMeasure: (songId: string, sectionId: string) => void;
     removeMeasure: (songId: string, sectionId: string, measureId: string) => void;
     updateMeasure: (songId: string, sectionId: string, measureId: string, chords: ChordBlock[]) => void;
+    replaceSongContent: (songId: string, sections: Section[], capo: number) => void;
 
     toggleMode: (songId: string) => void;
     setMode: (songId: string, mode: 'chords' | 'lyrics') => void;
@@ -326,6 +327,14 @@ export const useSongStore = create<SongState>((set, get) => ({
                 )
             };
         })
+    })),
+
+    replaceSongContent: (songId, sections, capo) => set((state) => ({
+        songs: state.songs.map(s =>
+            s.id === songId
+                ? { ...s, sections, capo, updatedAt: new Date().toISOString() }
+                : s
+        )
     })),
 
     toggleMode: (songId) => set((state) => ({

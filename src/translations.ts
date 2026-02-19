@@ -244,7 +244,18 @@ export const translations: Record<string, Record<string, string>> = {
 
         // Language
         'lang.fr': 'Français',
-        'lang.en': 'English'
+        'lang.en': 'English',
+
+        // AI Generation
+        'ai.generate': 'Générer les accords',
+        'ai.loading_title': 'Recherche en cours…',
+        'ai.loading_sub': 'L\'IA cherche les accords de',
+        'ai.stop': 'STOP',
+        'ai.error_title': 'Accords introuvables',
+        'ai.error_message': 'L\'IA n\'a pas pu trouver les accords de cette chanson. Vous pouvez continuer manuellement.',
+        'ai.manual_btn': 'Continuer manuellement',
+        'ai.tooltip_disabled': 'Remplissez le titre et l\'artiste d\'abord',
+        'ai.success': 'Accords générés avec succès !'
     },
     en: {
         // Navigation
@@ -490,6 +501,17 @@ export const translations: Record<string, Record<string, string>> = {
 
         // Language
         'lang.fr': 'French',
-        'lang.en': 'English'
+        'lang.en': 'English',
+
+        // AI Generation
+        'ai.generate': 'Generate chords',
+        'ai.loading_title': 'Searching…',
+        'ai.loading_sub': 'AI is looking for chords for',
+        'ai.stop': 'STOP',
+        'ai.error_title': 'Chords Not Found',
+        'ai.error_message': 'AI couldn\'t find chords for this song. You can continue manually.',
+        'ai.manual_btn': 'Continue manually',
+        'ai.tooltip_disabled': 'Fill in title & artist first',
+        'ai.success': 'Chords generated successfully!'
     }
 };
