@@ -92,7 +92,7 @@ export const MeasureCard: React.FC<Props> = ({ songId, sectionId, measure, index
         }
 
         setIsPlaying(true);
-        playChord(text, chordInstrument); // Use selected instrument
+        playChord(text, chordInstrument, capo); // Use selected instrument with capo
 
         // Reset playing state after 2 seconds
         setTimeout(() => {
