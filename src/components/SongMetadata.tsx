@@ -21,10 +21,15 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
     const [savedMessage, setSavedMessage] = React.useState(false);
     const [showInstrumentSelector, setShowInstrumentSelector] = React.useState(false);
 
-    // AI state
+    // AI Chords state
     const [isAILoading, setIsAILoading] = React.useState(false);
     const [aiError, setAiError] = React.useState<string | null>(null);
     const abortControllerRef = React.useRef<AbortController | null>(null);
+
+    // AI Lyrics state
+    const [isAILyricsLoading, setIsAILyricsLoading] = React.useState(false);
+    const [aiLyricsError, setAiLyricsError] = React.useState<string | null>(null);
+    const abortLyricsRef = React.useRef<AbortController | null>(null);
 
     if (!song) return null;
 
@@ -44,6 +49,11 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
     const isLiked = song.likes?.includes(currentUser?.id || 0);
     const canAIGenerate = !isReadOnly
         && song.mode === 'chords'
+        && song.title.trim().length > 0
+        && song.artist.trim().length > 0;
+
+    const canAIGenerateLyrics = !isReadOnly
+        && song.mode === 'lyrics'
         && song.title.trim().length > 0
         && song.artist.trim().length > 0;
 
@@ -87,12 +97,54 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
         setIsAILoading(false);
     };
 
+    // ── AI Lyrics Generation ──────────────────────────────────────────────────────────────
+
+    const handleAIGenerateLyrics = async () => {
+        if (!canAIGenerateLyrics || isAILyricsLoading) return;
+
+        const controller = new AbortController();
+        abortLyricsRef.current = controller;
+        setIsAILyricsLoading(true);
+        setAiLyricsError(null);
+
+        try {
+            const result = await aiService.generateLyrics(
+                song.title,
+                song.artist,
+                controller.signal
+            );
+
+            // Replace ALL sections with the AI-generated ones (including lyrics)
+            // Preserve existing capo
+            replaceSongContent(songId, result.sections, song.capo || 0);
+
+            setSavedMessage(true);
+            setTimeout(() => setSavedMessage(false), 3000);
+        } catch (err: any) {
+            if (err?.name === 'AbortError') {
+                return;
+            } else if (err instanceof aiService.AINotFoundError) {
+                setAiLyricsError(err.message);
+            } else {
+                setAiLyricsError(err?.message || 'Unknown error');
+            }
+        } finally {
+            setIsAILyricsLoading(false);
+            abortLyricsRef.current = null;
+        }
+    };
+
+    const handleAILyricsStop = () => {
+        abortLyricsRef.current?.abort();
+        setIsAILyricsLoading(false);
+    };
+
     // ── Render ─────────────────────────────────────────────────────────────────
 
     return (
         <div className="metadata-area relative">
 
-            {/* AI Loading Overlay */}
+            {/* AI Chords Loading Overlay */}
             {isAILoading && (
                 <AILoadingOverlay
                     title={song.title}
@@ -101,7 +153,16 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                 />
             )}
 
-            {/* AI Error Modal */}
+            {/* AI Lyrics Loading Overlay */}
+            {isAILyricsLoading && (
+                <AILoadingOverlay
+                    title={song.title}
+                    artist={song.artist}
+                    onStop={handleAILyricsStop}
+                />
+            )}
+
+            {/* AI Error Modal — Chords */}
             {aiError && (
                 <div
                     className="fixed inset-0 z-[9998] flex items-center justify-center"
@@ -137,6 +198,38 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                             onClick={() => setAiError(null)}
                             className="ios-primary-btn !px-8 !h-[46px] w-full"
                         >
+                            {t('ai.manual_btn')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* AI Error Modal — Lyrics */}
+            {aiLyricsError && (
+                <div
+                    className="fixed inset-0 z-[9998] flex items-center justify-center"
+                    style={{
+                        background: 'rgba(0,0,0,0.75)',
+                        backdropFilter: 'blur(8px)',
+                    }}
+                    onClick={() => setAiLyricsError(null)}
+                >
+                    <div
+                        className="relative bg-bg-secondary border-2 border-border-main rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4 flex flex-col items-center gap-6 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset',
+                        }}
+                    >
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                            style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.2) 0%, rgba(34,197,94,0.05) 100%)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                            <Wand2 size={28} className="text-green-400" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-black text-white tracking-wide">{t('ai.error_title')}</h3>
+                            <p className="text-sm text-text-secondary leading-relaxed">{t('ai.error_message')}</p>
+                        </div>
+                        <button onClick={() => setAiLyricsError(null)} className="ios-primary-btn !px-8 !h-[46px] w-full">
                             {t('ai.manual_btn')}
                         </button>
                     </div>
@@ -259,8 +352,23 @@ export const SongMetadata: React.FC<Props> = ({ songId }) => {
                                     disabled={!canAIGenerate}
                                     title={canAIGenerate ? t('ai.generate') : t('ai.tooltip_disabled')}
                                     className={`ios-btn-icon !w-[46px] !h-[46px] transition-all duration-200 ${canAIGenerate
-                                            ? 'text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/20 hover:scale-105 active:scale-95'
-                                            : 'text-text-secondary/30 cursor-not-allowed opacity-40'
+                                        ? 'text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/20 hover:scale-105 active:scale-95'
+                                        : 'text-text-secondary/30 cursor-not-allowed opacity-40'
+                                        }`}
+                                >
+                                    <Wand2 size={20} strokeWidth={2.5} />
+                                </button>
+                            )}
+
+                            {/* AI Wand Button — Lyrics Mode */}
+                            {song.mode === 'lyrics' && (
+                                <button
+                                    onClick={handleAIGenerateLyrics}
+                                    disabled={!canAIGenerateLyrics}
+                                    title={canAIGenerateLyrics ? 'Générer les paroles avec l\'IA' : 'Renseigne le titre, l\'artiste et ajoute des sections'}
+                                    className={`ios-btn-icon !w-[46px] !h-[46px] transition-all duration-200 ${canAIGenerateLyrics
+                                        ? 'text-green-400 hover:text-green-300 hover:bg-green-500/10 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/20 hover:scale-105 active:scale-95'
+                                        : 'text-text-secondary/30 cursor-not-allowed opacity-40'
                                         }`}
                                 >
                                     <Wand2 size={20} strokeWidth={2.5} />
